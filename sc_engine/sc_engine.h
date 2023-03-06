@@ -15,6 +15,9 @@
 #define ns_to_ms    0.000001
 
 typedef double T;
+typedef bool B;
+typedef int I;
+typedef uint UI;
 
 //! Considerations :
 //!
@@ -59,10 +62,9 @@ public:
         //! Acceleration end.
         T ace=0;
         //! Netto curve displacement.
-        T ncs=std::abs(endpos-startpos);
+        T ncs=0;
         //! Netto curve time.
         T nct=0;
-
         //! Curve absolute start position.
         T startpos=0;
         //! Curve absolute end position.

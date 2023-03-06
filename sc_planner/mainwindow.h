@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <iostream>
+#include <chrono>
 #include <opengl.h>
 #include <../sc_engine/sc_engine.h>
 
@@ -28,6 +29,10 @@ private slots:
     void on_pushButton_resume_pressed();
 
     void on_doubleSpinBox_vm_valueChanged(double arg1);
+
+    void clear_opengl();
+
+    void set_opengl(T vel, T pos, T acc);
 
 private:
     Ui::MainWindow *ui;

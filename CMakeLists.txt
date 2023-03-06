@@ -7,7 +7,6 @@ project(${PROJECT} CXX C) # Asm is optional.
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
-# Set the path to your qt here.
 set(CMAKE_PREFIX_PATH "/opt/qt-creator/5.15.1/gcc_64/lib/cmake/Qt5")
 
 add_subdirectory(${SRC_DIR}/sc_engine)

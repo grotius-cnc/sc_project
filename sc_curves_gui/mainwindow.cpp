@@ -35,7 +35,7 @@ void MainWindow::thread(){
 
 void MainWindow::process(){
 
-    std::vector<double> vvec, svec, avec;
+    std::vector<T> vvec, svec, avec;
     T vo=0, vm=0, ve=0, acs=0, ace=0, v=0, s=0, a=0, dv=0, vi=0, si=0, ai=0, dummy=0, nct=0;
 
     a=ui->doubleSpinBox_a->value();

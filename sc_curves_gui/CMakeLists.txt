@@ -59,7 +59,7 @@ set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 # Set include paths for libraries to link.
 add_library(engine SHARED IMPORTED) # or STATIC instead of SHARED
 set_target_properties(engine PROPERTIES
-    IMPORTED_LOCATION "${SRC_DIR}/../build/sc_engine/libsc_engine.so"
+    IMPORTED_LOCATION "${BUILD_DIR}/../sc_engine/libsc_engine.so"
     )
 
 target_link_libraries(${PROJECT} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets -lGL pthread rt engine)
