@@ -1,0 +1,805 @@
+﻿#include "sc_engine.h"
+
+inline int sc_engine::t1(T vo, T acs, T ace, sc_period &p){
+
+    acs=std::abs(acs);
+    ace=std::abs(ace);
+    acs=std::min(as,acs);
+    ace=std::min(as,ace);
+
+    T ts=acs/jm;
+    T vf=vo-(jm*(ts*ts)/2);
+    T so=vf*ts+jm*(ts*ts*ts)/6;
+
+    T te=ace/jm;
+    T ve=vf+jm*(te*te)/2;
+    T se=vf*te+jm*(te*te*te)/6;
+
+    T ncs=se-so;
+    T nct=te-ts;
+
+    p={sc_period_id::id_t1,vo,ve,acs,ace,ncs,nct};
+
+    return 1;
+}
+
+inline int sc_engine::t1_ve(T vo, T ve, T acs, sc_period &p){
+
+    acs=std::abs(acs);
+    acs=std::min(acs,as);
+
+    T ts=acs/jm;
+    T vf=vo-(jm*(ts*ts)/2);
+
+    T so=vf*ts+jm*(ts*ts*ts)/6;
+
+    T te=sqrt(-2*vf+2*ve)/sqrt(jm);
+    te=std::min(0.5*ct,te);
+    T ve_=vf+jm*(te*te)/2;
+    T ace=jm*te;
+
+    T se=vf*te+jm*(te*te*te)/6;
+
+    T ncs=se-so;
+    T nct=te-ts;
+
+    p={sc_period_id::id_t1,vo,ve_,acs,ace,ncs,nct};
+
+    return 1;
+}
+
+inline int sc_engine::t1_i(sc_period p, T ti, T &vi, T &si, T &ai){
+
+    T ts=p.acs/jm;
+    T vf=p.vo-(jm*(ts*ts)/2);
+
+    ti+=ts;
+    vi=vf+jm*(ti*ti)/2;
+
+    T so=vf*ts+jm*(ts*ts*ts)/6;
+    T se=vf*ti+jm*(ti*ti*ti)/6;
+    si=se-so;
+
+    ai=jm*ti;
+    return 1;
+}
+
+inline int sc_engine::t2(T vo, T ve, T a, sc_period &p){
+
+    T ncs=((ve*ve) - (vo*vo))/(2*a) ;
+    T nct=(ve-vo)/a;
+
+    p={sc_period_id::id_t2,vo,ve,a,a,ncs,nct};
+
+    return 1;
+}
+
+inline int sc_engine::t2_i(sc_period p, T ti, T &vi, T &si, T &ai){
+
+    vi=p.vo + p.acs*ti;
+    si=p.vo*ti + 0.5*p.acs*(ti*ti);
+    ai=p.acs;
+
+    return 1;
+}
+
+inline int sc_engine::t3(T vo, T acs, T ace, sc_period &p){
+
+    acs=std::abs(acs);
+    ace=std::abs(ace);
+    acs=std::min(as,acs);
+    ace=std::min(as,ace);
+
+    T ts=(as-acs)/jm;
+    T vf = -as*ts+((jm*(ts*ts))/2)+vo;
+    T so=vf*ts + as*(ts*ts)/2 - jm*(ts*ts*ts)/6;
+
+    T te=(as-ace)/jm;
+    T ve=vf + as*te - jm*(te*te)/2;
+    T se=vf*te + as*(te*te)/2 - jm*(te*te*te)/6;
+
+    T ncs=se-so;
+    T nct=te-ts;
+
+    p={sc_period_id::id_t3,vo,ve,acs,ace,ncs,nct};
+
+    return 2;
+}
+
+inline int sc_engine::t3_i(sc_period p, T ti, T &vi, T &si, T &ai){
+
+    T ts=(as-p.acs)/jm;
+    T t=ts;
+    T vf = -as*t+((jm*(t*t))/2)+p.vo;
+    T so=vf*t + as*(t*t)/2 - jm*(t*t*t)/6;
+
+    t=0;
+    T sf=vf*t + as*(t*t)/2 - jm*(t*t*t)/6;
+
+    t=ti+ts;
+    vi=vf + as*t - jm*(t*t)/2;
+    si=vf*t + as*(t*t)/2 - jm*(t*t*t)/6;
+    si-=so-sf;
+    ai=as-(jm*t);
+
+    return 1;
+}
+
+inline int sc_engine::t4(T vo, T s, sc_period &p){
+    T nct=s/vo;
+    T ncs=s;
+
+    p={sc_period_id::id_t4,vo,vo,0,0,ncs,nct};
+
+    return 1;
+}
+
+inline int sc_engine::t4_i(sc_period p, T ti, T &vi, T &si, T &ai){
+
+    vi=p.vo;
+    si=p.vo*ti;
+    ai=0;
+
+    return 1;
+}
+
+inline int sc_engine::t5(T vo, T acs, T ace, sc_period &p){
+
+    acs=std::abs(acs);
+    ace=std::abs(ace);
+    acs=std::min(as,acs);
+    ace=std::min(as,ace);
+    acs=std::min(acs,ace);
+
+    T ts=acs/jm;
+    T vf=((jm*(ts*ts))/2)+vo;
+    T so=vf*ts-jm*(ts*ts*ts)/6;
+
+    T te=ace/jm;
+    T ve_=vf-jm*(te*te)/2;
+    T se=vf*te-jm*(te*te*te)/6;
+
+    T ncs=se-so;
+    T nct=te-ts;
+
+    p={sc_period_id::id_t5,vo,ve_,acs,ace,ncs,nct};
+
+    return 1;
+}
+
+inline int sc_engine::t5_ve(T vo, T ve, T acs, sc_period &p){
+
+    acs=std::abs(acs);
+    acs=std::min(acs,as);
+
+    T ts=acs/jm;
+    T vf=((jm*(ts*ts))/2)+vo;
+    T so=vf*ts-jm*(ts*ts*ts)/6;
+
+    T te=(sqrt(2)*sqrt(vf-ve))/sqrt(jm);
+    te=std::min(0.5*ct,te);
+    T ace_=-std::abs(jm*te);
+    T ve_=vf-jm*(te*te)/2;
+    T se=vf*te-jm*(te*te*te)/6;
+
+    T ncs=se-so;
+    T nct=te-ts;
+
+    p={sc_period_id::id_t5,vo,ve_,acs,ace_,ncs,nct};
+
+    return 1;
+}
+
+inline int sc_engine::t5_i(sc_period p, T ti, T &vi, T &si, T &ai){
+
+    p.acs=std::abs(p.acs);
+
+    T ts=p.acs/jm;
+    T t=ts;
+    T vf=((jm*(t*t))/2)+p.vo;
+    T so=vf*t-jm*(t*t*t)/6;
+
+    t=0;
+    T sf=vf*t-jm*(t*t*t)/6;
+
+    t=ti+ts;
+    vi=vf-jm*(t*t)/2;
+    ai=-std::abs(jm*t);
+    si=vf*t-jm*(t*t*t)/6;
+    si-=so-sf;
+
+    return 1;
+}
+
+inline int sc_engine::t6(T vo, T ve, T a, sc_period &p){
+
+    a=std::abs(a);
+    T ncs=((vo*vo) - (ve*ve))/(2*a);
+    T nct=(vo-ve)/a;
+
+    p={sc_period_id::id_t6,vo,ve,a,a,ncs,nct};
+
+    return 1;
+}
+
+inline int sc_engine::t6_i(sc_period p, T ti, T &vi, T &si, T &ai){
+
+    T t=0;
+    p.acs=std::abs(p.acs);
+
+    t=ti;
+    vi=p.vo - p.acs*t;
+    si=p.vo*t - 0.5*p.acs*(t*t);
+    ai=-std::abs(p.acs);
+
+    return 1;
+}
+
+inline int sc_engine::t7(T vo, T acs, T ace, sc_period &p){
+
+    acs=std::abs(acs);
+    ace=std::abs(ace);
+    acs=std::min(as,acs);
+    ace=std::min(as,ace);
+
+    T ts=(as-acs)/jm;
+    T vf=as*ts - ((jm*(ts*ts))/2) + vo;
+    T so=vf*ts - as*(ts*ts)/2 + jm*(ts*ts*ts)/6;
+
+    T te=(as-ace)/jm;
+    T se=vf*te - as*(te*te)/2 + jm*(te*te*te)/6;
+    T ve=vf - as*te + jm*(te*te)/2;
+
+    T ncs=se-so;
+    T nct=te-ts;
+
+    p={sc_period_id::id_t7,vo,ve,acs,ace,ncs,nct};
+
+    return 1;
+}
+
+inline int sc_engine::t7_i(sc_period p, T ti, T &vi, T &si, T &ai){
+
+    p.acs=std::abs(p.acs);
+
+    T ts=(as-p.acs)/jm;
+    T t=ts;
+    T vf=as*t - ((jm*(t*t))/2) + p.vo;
+    T so=vf*t - as*(t*t)/2 + jm*(t*t*t)/6;
+
+    t=0;
+    T sf=vf*t - as*(t*t)/2 + jm*(t*t*t)/6;
+
+    t=ti+ts;
+    vi=vf - as*t + jm*(t*t)/2;
+    si=vf*t - as*(t*t)/2 + jm*(t*t*t)/6;
+    si-=so-sf;
+    ai=-std::abs(as-jm*t);
+
+    return 1;
+}
+
+inline int sc_engine::t1_t2_t3(sc_period p, std::vector<sc_period> &pvec){
+
+    sc_period p1,p2,p3;
+    T delta_v=0;
+
+    t1(p.vo,p.acs,as,p1);
+    t3(p1.ve,p1.ace,p.ace,p3);
+
+    if(p3.ve<=p.ve){
+        t1(p.vo,p.acs,as,p1);
+        delta_v=p.ve-p3.ve;
+        t2(p1.ve,p1.ve+delta_v,p1.ace,p2);
+        t3(p2.ve,p2.ace,p.ace,p3);
+        pvec={p1,p2,p3};
+        return 1;
+    }
+
+    if(p3.ve>p.ve){ //! Sample as down.
+        for(T i=as; i>0; i-=0.1*as){ //! Sampling 10%.
+            t1(p.vo,p.acs,i,p1);
+            t3(p1.ve,p1.ace,p.ace,p3);
+
+            if(p3.ve<p.ve){
+
+                delta_v=p.ve-p3.ve;
+
+                t1(p.vo,p.acs,i,p1);
+                t2(p1.ve,p1.ve+delta_v,p1.ace,p2);
+                t3(p2.ve,p2.ace,p.ace,p3);
+
+                pvec={p1,p2,p3};
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+inline int sc_engine::t7_t1_t2_t3_t5(sc_period p, std::vector<sc_period> &pvec){
+
+    sc_period p7,p1,p2,p3,p5;
+    T delta_v=0;
+
+    if(p.acs<0){
+        t7(p.vo,p.acs,0,p7);
+        p.vo=p7.ve;
+        p.acs=0;
+    }
+
+    t1(p.vo,p.acs,as,p1);
+
+    if(p.ace<0){
+        t3(p1.ve,p1.ace,0,p3);
+        t5(p3.ve,0,p.ace,p5);
+        p3.ve=p5.ve;
+    } else {
+        t3(p1.ve,p1.ace,p.ace,p3);
+    }
+
+    if(p3.ve<=p.ve){ //! Need t2.
+        t1(p.vo,p.acs,as,p1);
+        delta_v=p.ve-p3.ve;
+        t2(p1.ve,p1.ve+delta_v,p1.ace,p2);
+
+        if(p.ace<0){
+            t3(p2.ve,p2.ace,0,p3);
+            t5(p3.ve,0,p.ace,p5);
+        } else {
+            t3(p2.ve,p2.ace,p.ace,p3);
+        }
+
+        pvec={p7,p1,p2,p3,p5};
+        return 1;
+    }
+
+    if(p3.ve>p.ve){ //! Sample as down.
+        for(T i=as; i>0; i-=0.1*as){ //! Sampling 10%.
+            t1(p.vo,p.acs,i,p1);
+            t3(p1.ve,p1.ace,p.ace,p3);
+
+            if(p.ace<0){
+                t3(p1.ve,p1.ace,0,p3);
+                t5(p3.ve,0,p.ace,p5);
+                p3.ve=p5.ve;
+            } else {
+                t3(p1.ve,p1.ace,p.ace,p3);
+            }
+
+            if(p3.ve<p.ve){
+
+                delta_v=p.ve-p3.ve;
+
+                t1(p.vo,p.acs,i,p1);
+                t2(p1.ve,p1.ve+delta_v,p1.ace,p2);
+
+                if(p.ace<0){
+                    t3(p2.ve,p2.ace,0,p3);
+                    t5(p3.ve,0,p.ace,p5);
+                } else {
+                    t3(p2.ve,p2.ace,p.ace,p3);
+                }
+
+                pvec={p7,p1,p2,p3,p5};
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+inline int sc_engine::t5_t6_t7(sc_period p, std::vector<sc_period> &pvec){
+
+    sc_period p5,p6,p7;
+    T delta_v=0;
+
+    t5(p.vo,p.acs,as,p5);
+    t7(p5.ve,p5.ace,p.ace,p7);
+
+    if(p7.ve>=p.ve){
+
+        delta_v=p7.ve-p.ve;
+
+        t6(p5.ve,p5.ve-delta_v,p5.ace,p6);
+        t7(p6.ve,p6.ace,p.ace,p7);
+        //! std::cout<<"normal, ve:"<<p7.ve<<std::endl;
+    }
+
+    if(p7.ve<p.ve){ //! Sample as down.
+        for(T i=as; i>0; i-=(0.1*as)){ //! Sampling 10%.
+            t5(p.vo,p.acs,i,p5);
+            t7(p5.ve,p5.ace,p.ace,p7);
+
+            if(p7.ve>p.ve){
+
+                delta_v=p7.ve-p.ve;
+
+                t5(p.vo,p.acs,i,p5);
+                t6(p5.ve,p5.ve-delta_v,p5.ace,p6);
+                t7(p6.ve,p6.ace,p.ace,p7);
+                break;
+            }
+        }
+    }
+    pvec={p5,p6,p7};
+    return 1;
+}
+
+inline int sc_engine::t3_t5_t6_t7_t1(sc_period p, std::vector<sc_period> &pvec){
+
+    sc_period p3,p5,p6,p7,p1;
+    T delta_v=0;
+
+    if(p.acs>0){
+        t3(p.vo,p.acs,0,p3);
+        p.vo=p3.ve;
+        p.acs=0;
+    }
+
+    t5(p.vo,p.acs,as,p5);
+
+    if(p.ace>0){
+        t7(p5.ve,p5.ace,0,p7);
+        t1(p7.ve,0,p.ace,p1);
+        p7.ve=p1.ve;
+    } else {
+        t7(p5.ve,p5.ace,p.ace,p7);
+    }
+
+    if(p7.ve>=p.ve){ //! Need t2.
+
+        delta_v=p7.ve-p.ve;
+
+        t6(p5.ve,p5.ve-delta_v,p5.ace,p6);
+
+        if(p.ace>0){
+            t7(p6.ve,p6.ace,0,p7);
+            t1(p7.ve,0,p.ace,p1);
+        } else {
+            t7(p6.ve,p6.ace,p.ace,p7);
+        }
+
+        pvec={p3,p5,p6,p7,p1};
+        return 1;
+    }
+
+    if(p7.ve<p.ve){ //! Sample as down.
+        for(T i=as; i>0; i-=(0.1*as)){ //! Sampling 10%.
+            t5(p.vo,p.acs,i,p5);
+
+            if(p.ace>0){
+                t7(p5.ve,p5.ace,0,p7);
+                t1(p7.ve,0,p.ace,p1);
+                p7.ve=p1.ve;
+            } else {
+                t7(p5.ve,p5.ace,p.ace,p7);
+            }
+
+            if(p7.ve>p.ve){
+
+                delta_v=p7.ve-p.ve;
+
+                t5(p.vo,p.acs,i,p5);
+                t6(p5.ve,p5.ve-delta_v,p5.ace,p6);
+
+
+                if(p.ace>0){
+                    t7(p6.ve,p6.ace,0,p7);
+                    t1(p7.ve,0,p.ace,p1);
+                } else {
+                    t7(p6.ve,p6.ace,p.ace,p7);
+                }
+
+                pvec={p3,p5,p6,p7,p1};
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+inline T sc_engine::to_vh_acc(T vo, T ve){
+    return ((ve-vo)/2)+vo;
+}
+
+inline T sc_engine::to_vh_dcc(T vo, T ve){
+    return vo-((vo-ve)/2);
+}
+
+void sc_engine::sc_set_a_dv(T theA, T theDv){
+
+    a=theA;
+    T dv=theDv;
+    ct=dv/a;
+    as=2*a;
+    jm=2*as/ct;
+}
+
+void sc_engine::interpolate_period(T at_time,
+                                   sc_period p,
+                                   T &pos,
+                                   T &vel,
+                                   T &acc){
+
+    if(p.id==sc_period_id::id_t1){
+        t1_i(p,at_time,vel,pos,acc);
+    }
+    if(p.id==sc_period_id::id_t2){
+        t2_i(p,at_time,vel,pos,acc);
+    }
+    if(p.id==sc_period_id::id_t3){
+        t3_i(p,at_time,vel,pos,acc);
+    }
+    if(p.id==sc_period_id::id_t4){
+        t4_i(p,at_time,vel,pos,acc);
+    }
+    if(p.id==sc_period_id::id_t5){
+        t5_i(p,at_time,vel,pos,acc);
+    }
+    if(p.id==sc_period_id::id_t6){
+        t6_i(p,at_time,vel,pos,acc);
+    }
+    if(p.id==sc_period_id::id_t7){
+        t7_i(p,at_time,vel,pos,acc);
+    }
+}
+
+void sc_engine::interpolate_periods(T at_time,
+                                    std::vector<sc_period> pvec,
+                                    T &pos,
+                                    T &vel,
+                                    T &acc,
+                                    bool &finished){
+    T t=0;
+    T s=0;
+
+    if(at_time>to_ttot_pvec(pvec)){
+        //! std::cout<<"finished"<<std::endl;
+        finished=true;
+        return;
+    }
+
+
+    for(uint i=0; i<pvec.size(); i++){
+
+        if(at_time>=t && at_time<t+pvec.at(i).nct){
+            T time=at_time-t;
+            interpolate_period(time,pvec.at(i),pos,vel,acc);
+            pos+=s;
+            return;
+        }
+
+        t+=pvec.at(i).nct;
+        s+=pvec.at(i).ncs;
+    }
+}
+
+int sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
+
+    p.ncs=std::abs(p.ncs); //! Ensure positive input.
+
+    if(p.vo==vm && p.ve==vm){
+
+    }
+
+    //! The most common motion curve.
+    if(p.vo<vm && p.ve<vm){
+
+        std::vector<sc_period> vec_1, vec_3;
+        sc_period p4;
+        T stot=0;
+
+        t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,vm,p.acs,0},vec_1);
+        t3_t5_t6_t7_t1({sc_period_id::id_none,vm,p.ve,0,p.ace},vec_3);
+
+        stot=to_stot_pvec(vec_1)+to_stot_pvec(vec_3);
+
+        if(p.ncs==stot){
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+            return 1;
+        }
+        if(p.ncs>stot){ //! Need t4.
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            t4(vm,p.ncs-stot,p4);
+            pvec.push_back(p4);
+            pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+
+            return 1;
+        }
+        T last_vm=0;
+        if(p.ncs<stot){ //! Sample vm down, add t4 to fit s.
+            for(T i=vm; i>std::max(p.vo,p.ve); i-=0.1*vm){ //! Sampling 10%.
+
+                t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,i,p.acs,0},vec_1);
+                t3_t5_t6_t7_t1({sc_period_id::id_none,i,p.ve,0,p.ace},vec_3);
+
+                stot=to_stot_pvec(vec_1)+to_stot_pvec(vec_3);
+
+                if(stot<=p.ncs){
+
+                    t4(i,p.ncs-stot,p4);
+
+                    pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+                    pvec.push_back(p4);
+                    pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+
+                    std::cout<<"sampled vm i:"<<i<<std::endl;
+                    return 1;
+                }
+
+                last_vm=i;
+            }
+        }
+
+        //! Minimal curve.
+        t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,last_vm,p.acs,0},vec_1);
+        t3_t5_t6_t7_t1({sc_period_id::id_none,last_vm,p.ve,0,p.ace},vec_3);
+        pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+        pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+        return 1;
+    }
+
+    if(p.vo>vm && p.ve>vm){
+
+        std::vector<sc_period> vec_1, vec_3;
+        sc_period p4;
+        T stot=0;
+
+        t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,vm,p.acs,0},vec_1);
+        t7_t1_t2_t3_t5({sc_period_id::id_none,vm,p.ve,0,p.ace},vec_3);
+
+        stot=to_stot_pvec(vec_1)+to_stot_pvec(vec_3);
+
+        if(p.ncs==stot){
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+            return 1;
+        }
+        if(p.ncs>stot){ //! Need t4.
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            t4(vm,p.ncs-stot,p4);
+            pvec.push_back(p4);
+            pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+            return 1;
+        }
+        T last_vm=0;
+        if(p.ncs<stot){ //! Sample vm up, add t4 to fit s.
+            for(T i=vm; i<std::min(p.vo,p.ve); i+=0.1*vm){ //! Sampling 10%.
+
+                t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,i,p.acs,0},vec_1);
+                t7_t1_t2_t3_t5({sc_period_id::id_none,i,p.ve,0,p.ace},vec_3);
+
+                stot=to_stot_pvec(vec_1)+to_stot_pvec(vec_3);
+
+                if(stot<=p.ncs){
+
+                    t4(i,p.ncs-stot,p4);
+
+                    pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+                    pvec.push_back(p4);
+                    pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+
+                    return 1;
+                }
+
+                last_vm=i;
+            }
+        }
+
+        //! Output minimal curve.
+        t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,last_vm,p.acs,0},vec_1);
+        t7_t1_t2_t3_t5({sc_period_id::id_none,last_vm,p.ve,0,p.ace},vec_3);
+        pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+        pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+    }
+
+    if(p.vo<vm && p.ve==vm){ //! Limits: dcc possible at end of vm.
+
+        std::cout<<"pause resume request"<<std::endl;
+
+        std::vector<sc_period> vec_1;
+        sc_period p4,p5;
+        T stot=0;
+
+        t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,vm,p.acs,0},vec_1);
+
+        if(p.ace<0){
+            t5(vm,0,p.ace,p5);
+            stot=to_stot_pvec(vec_1)+p5.ncs;
+        } else {
+            stot=to_stot_pvec(vec_1);
+        }
+
+        if(p.ncs==stot){
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            if(p.ace<0){
+                pvec.push_back(p5);
+            }
+            return 1;
+        }
+
+        if(p.ncs>stot){ //! Need t4.
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            t4(vm,p.ncs-stot,p4);
+            pvec.push_back(p4);
+
+            if(p.ace<0){
+                pvec.push_back(p5);
+            }
+            return 1;
+        }
+
+        //! No solution, use minimal curve.
+        pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+        if(p.ace<0){
+            pvec.push_back(p5);
+        }
+        return 1;
+
+    }
+
+    if(p.vo>vm && p.ve==vm){
+
+    }
+
+    if(p.vo==vm && p.ve<vm){
+        std::cout<<"pause request"<<std::endl;
+        std::vector<sc_period> vec_1;
+        t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,p.ve,p.acs,p.ace},vec_1);
+        pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+        return 1;
+    }
+
+    if(p.vo==vm && p.ve>vm){
+
+    }
+
+    if(p.vo<vm && p.ve>vm){ // Stay below vm.
+
+    }
+
+    if(p.vo>vm && p.ve<vm){
+
+    }
+
+    return 1;
+}
+
+T  sc_engine::to_stot_pvec(std::vector<sc_period> pvec){
+    T s=0;
+    for(uint i=0; i<pvec.size(); i++){
+        s+=pvec.at(i).ncs;
+    }
+    return s;
+}
+
+T  sc_engine::to_ttot_pvec(std::vector<sc_period> pvec){
+    T t=0;
+    for(uint i=0; i<pvec.size(); i++){
+        t+=pvec.at(i).nct;
+    }
+    return t;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

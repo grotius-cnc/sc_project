@@ -1,0 +1,23 @@
+# This are notes to run some git commands from terminal.
+
+git init
+git config --global init.defaultBranch main
+git remote add origin https://github.com/grotius-cnc/sc_project.git
+git add .
+git branch -M main
+git push -u origin main
+git push -f origin main  # the hard way.
+git add .
+git commit -m "first commit"
+
+git submodule add https://github.com/Dav1dde/glad.git vendor/glad
+
+git submodule sync
+git add .
+git commit -m "commit"
+
+git push -u origin main
+
+# Remove a submodule :
+git rm --cached vendor/PyBind/pybind11
+
