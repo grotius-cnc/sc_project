@@ -51,7 +51,8 @@ void MainWindow::process(){
     s=ui->doubleSpinBox_s->value();
 
     sc_engine::sc_period p;
-    p={sc_engine::sc_period_id::id_pvec,vo,ve,acs,ace,s};
+    //! Produce run curves, otherwise use type of : id_pause, id_pause_resume.
+    p={sc_engine::sc_period_id::id_run,vo,ve,acs,ace,s};
 
     std::vector<sc_engine::sc_period> pvec;
 

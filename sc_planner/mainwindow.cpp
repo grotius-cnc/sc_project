@@ -102,7 +102,7 @@ void MainWindow::thread(){
         T ncs=stored_endpos-position;
 
         vmvec.clear();
-        engine->process_curve({sc_engine::sc_period_id::id_none,
+        engine->process_curve({sc_engine::sc_period_id::id_run, //! Id run works ok for interupts.
                                velocity,
                                stored_ve,
                                acceleration,
@@ -184,7 +184,7 @@ void MainWindow::thread(){
             store_acceleration=acceleration;
 
             T ve=0, ace=0;
-            engine->process_curve({sc_engine::sc_period_id::id_none,
+            engine->process_curve({sc_engine::sc_period_id::id_pause, //! Id_pause produces a short curve without processing vm.
                                    velocity,
                                    ve,
                                    acceleration,
@@ -224,7 +224,7 @@ void MainWindow::thread(){
 
             tarpos=std::abs(position-store_displacement);
 
-            engine->process_curve({sc_engine::sc_period_id::id_none,
+            engine->process_curve({sc_engine::sc_period_id::id_pause_resume,
                                    vo,
                                    store_velocity,
                                    acs,
@@ -288,10 +288,10 @@ void MainWindow::on_pushButton_planner_pressed()
     motionvec.clear();
 
     vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, startpos=0, endpos=200;
-    motionvec.push_back({sc_engine::sc_period_id::id_none,vo,ve,acs,ace,ncs,nct,startpos,endpos});
+    motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,startpos,endpos});
 
     vo=0, ve=0, acs=0, ace=0, ncs=200, nct=0, startpos=200, endpos=-50;
-    motionvec.push_back({sc_engine::sc_period_id::id_none,vo,ve,acs,ace,ncs,nct,startpos,endpos});
+    motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,startpos,endpos});
 
     run=1;
     run_init=0;

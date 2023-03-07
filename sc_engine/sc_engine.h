@@ -46,6 +46,9 @@ public:
         id_t6,
         id_t7,
         id_pvec,
+        id_run,
+        id_pause,
+        id_pause_resume,
         id_none
     };
 
