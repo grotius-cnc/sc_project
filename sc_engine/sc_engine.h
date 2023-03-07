@@ -110,6 +110,10 @@ public:
 
     inline int t3_t5_t6_t7_t1(sc_period p, std::vector<sc_period> &pvec);
 
+    inline int t4_acs(sc_period p, std::vector<sc_period> &pvec);
+
+    inline int t4_ace(sc_period p, std::vector<sc_period> &pvec);
+
     int process_curve(sc_period p, T vm, std::vector<sc_period> &pvec);
 
     //! Inline is used for better time performance.

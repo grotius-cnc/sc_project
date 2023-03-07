@@ -426,6 +426,98 @@ inline int sc_engine::t5_t6_t7(sc_period p, std::vector<sc_period> &pvec){
     return 1;
 }
 
+inline int sc_engine::t4_acs(sc_period p, std::vector<sc_period> &pvec){
+
+    sc_period p1,p3,p4,p5,p7;
+    if(p.acs>0){
+        t3(p.vo,p.acs,0,p3);
+
+        t5_ve(p3.ve,to_vh_dcc(p3.ve,p.ve),0,p5);
+        t7(p5.ve,p5.ace,0,p7);
+
+        T s=p.ncs-(p3.ncs+p5.ncs+p7.ncs);
+        if(s>0){ //! Need steady period.
+            t4(p7.ve,s,p4);
+            pvec={p3,p5,p7,p4};
+            return 1;
+        } else {
+            pvec={p3,p5,p7};
+            return 1;
+        }
+    }
+    if(p.acs<0){
+        t7(p.vo,p.acs,0,p7);
+
+        t1_ve(p7.ve,to_vh_acc(p7.ve,p.ve),0,p1);
+        t3(p1.ve,p1.ace,0,p3);
+
+        T s=p.ncs-(p7.ncs+p1.ncs+p3.ncs);
+        if(s>0){ //! Need steady period.
+            t4(p3.ve,s,p4);
+            pvec={p7,p1,p3,p4};
+            return 1;
+        } else {
+            pvec={p7,p1,p3};
+            return 1;
+        }
+    }
+    if(p.acs==0){
+        t4(p.vo,p.ncs,p4);
+        pvec={p4};
+        return 1;
+    }
+    return 0;
+}
+
+inline int sc_engine::t4_ace(sc_period p, std::vector<sc_period> &pvec){
+
+    sc_period p1,p3,p4,p5,p7;
+    if(p.ace>0){
+        T a_number=100;
+        t5(a_number,0,p.ace,p5);
+        T dv=a_number-p5.ve;
+
+        t1_ve(p.vo,to_vh_acc(p.vo,p.vo+dv),0,p1);
+        t3(p1.ve,p1.ace,0,p3);
+        t5(p3.ve,0,p.ace,p5);
+
+        T s=p.ncs-(p1.ncs+p3.ncs+p5.ncs);
+        if(s>0){ //! Need steady period.
+            t4(p.vo,s,p4);
+            pvec={p4,p1,p3,p5};
+            return 1;
+        } else { //! Minimal curve.
+            pvec={p1,p3,p5};
+            return 1;
+        }
+    }
+    if(p.ace<0){
+        T a_number=100;
+        t1(a_number,0,p.ace,p1);
+        T dv=p1.ve-a_number;
+
+        t5_ve(p.vo,to_vh_dcc(p.vo,p.vo-dv),0,p5);
+        t7(p5.ve,p5.ace,0,p7);
+        t1(p7.ve,0,p.ace,p1);
+
+        T s=p.ncs-(p5.ncs+p7.ncs+p1.ncs);
+        if(s>0){ //! Need steady period.
+            t4(p.vo,s,p4);
+            pvec={p4,p5,p7,p1};
+            return 1;
+        } else { //! Minimal curve.
+            pvec={p5,p7,p1};
+            return 1;
+        }
+    }
+    if(p.ace==0){
+        t4(p.vo,p.ncs,p4);
+        pvec={p4};
+        return 1;
+    }
+    return 0;
+}
+
 inline int sc_engine::t3_t5_t6_t7_t1(sc_period p, std::vector<sc_period> &pvec){
 
     sc_period p3,p5,p6,p7,p1;
@@ -579,9 +671,7 @@ int sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
 
     p.ncs=std::abs(p.ncs); //! Ensure positive input.
 
-    if(p.vo==vm && p.ve==vm){
 
-    }
 
     //! The most common motion curve.
     if(p.vo<vm && p.ve<vm){
@@ -608,16 +698,21 @@ int sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
 
             return 1;
         }
-        T last_vm=0;
+
         if(p.ncs<stot){ //! Sample vm down, add t4 to fit s.
-            for(T i=vm; i>std::max(p.vo,p.ve); i-=0.1*vm){ //! Sampling 10%.
+            for(T i=vm; i>std::min(p.vo,p.ve); i-=0.1){ //! Sampling 10%.
+
+                std::cout<<"vo:"<<p.vo<<std::endl;
+                std::cout<<"ve:"<<p.ve<<std::endl;
+                std::cout<<"vm:"<<i<<std::endl;
 
                 t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,i,p.acs,0},vec_1);
                 t3_t5_t6_t7_t1({sc_period_id::id_none,i,p.ve,0,p.ace},vec_3);
 
+
                 stot=to_stot_pvec(vec_1)+to_stot_pvec(vec_3);
 
-                if(stot<=p.ncs){
+                if(stot<p.ncs){
 
                     t4(i,p.ncs-stot,p4);
 
@@ -625,20 +720,22 @@ int sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
                     pvec.push_back(p4);
                     pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
 
-                    std::cout<<"sampled vm i:"<<i<<std::endl;
                     return 1;
                 }
-
-                last_vm=i;
             }
         }
 
-        //! Minimal curve.
-        t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,last_vm,p.acs,0},vec_1);
-        t3_t5_t6_t7_t1({sc_period_id::id_none,last_vm,p.ve,0,p.ace},vec_3);
-        pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
-        pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
-        return 1;
+        //! At this stage curve don't fit s.
+        if(p.vo<p.ve){
+            vm=p.ve;
+        }
+        if(p.vo>p.ve){
+            vm=p.vo;
+        }
+        if(p.vo==p.ve){
+            vm=p.ve;
+        }
+        //! Go on, process another curve.
     }
 
     if(p.vo>vm && p.ve>vm){
@@ -664,7 +761,7 @@ int sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
             pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
             return 1;
         }
-        T last_vm=0;
+
         if(p.ncs<stot){ //! Sample vm up, add t4 to fit s.
             for(T i=vm; i<std::min(p.vo,p.ve); i+=0.1*vm){ //! Sampling 10%.
 
@@ -683,88 +780,225 @@ int sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
 
                     return 1;
                 }
-
-                last_vm=i;
             }
         }
 
-        //! Output minimal curve.
-        t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,last_vm,p.acs,0},vec_1);
-        t7_t1_t2_t3_t5({sc_period_id::id_none,last_vm,p.ve,0,p.ace},vec_3);
-        pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
-        pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+        //! At this stage curve don't fit s.
+        if(p.vo<p.ve){
+            vm=p.ve;
+        }
+        if(p.vo>p.ve){
+            vm=p.vo;
+        }
+        if(p.vo==p.ve){
+            vm=p.ve;
+        }
+        //! Go on, process another curve.
     }
 
     if(p.vo<vm && p.ve==vm){ //! Limits: dcc possible at end of vm.
 
-        std::cout<<"pause resume request"<<std::endl;
-
-        std::vector<sc_period> vec_1;
-        sc_period p4,p5;
-        T stot=0;
+        std::vector<sc_period> vec_1, vec_2;
+        T s1=0;
 
         t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,vm,p.acs,0},vec_1);
+        t4_ace({sc_period_id::id_none,vm,p.ve,0,p.ace},vec_2);
 
-        if(p.ace<0){
-            t5(vm,0,p.ace,p5);
-            stot=to_stot_pvec(vec_1)+p5.ncs;
-        } else {
-            stot=to_stot_pvec(vec_1);
-        }
+        s1=p.ncs-to_stot_pvec(vec_1);
 
-        if(p.ncs==stot){
+        if(s1>0){ //! Steady period to fit s.
+            t4_ace({sc_period_id::id_none,vm,p.ve,0,p.ace,s1},vec_2);
             pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
-            if(p.ace<0){
-                pvec.push_back(p5);
-            }
+            pvec.insert(pvec.end(),vec_2.begin(),vec_2.end());
             return 1;
         }
 
-        if(p.ncs>stot){ //! Need t4.
-            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
-            t4(vm,p.ncs-stot,p4);
-            pvec.push_back(p4);
-
-            if(p.ace<0){
-                pvec.push_back(p5);
-            }
-            return 1;
-        }
-
-        //! No solution, use minimal curve.
+        //! minimal curve.
         pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
-        if(p.ace<0){
-            pvec.push_back(p5);
-        }
+        pvec.insert(pvec.end(),vec_2.begin(),vec_2.end());
         return 1;
-
     }
 
     if(p.vo>vm && p.ve==vm){
 
+        std::vector<sc_period> vec_1, vec_2;
+        T s1=0;
+
+        t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,vm,p.acs,0},vec_1);
+        t4_ace({sc_period_id::id_none,vm,p.ve,0,p.ace},vec_2);
+
+        s1=p.ncs-to_stot_pvec(vec_1);
+
+        if(s1>0){ //! Steady period to fit s.
+            t4_ace({sc_period_id::id_none,vm,p.ve,0,p.ace,s1},vec_2);
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            pvec.insert(pvec.end(),vec_2.begin(),vec_2.end());
+            return 1;
+        }
+
+        //! minimal curve.
+        pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+        pvec.insert(pvec.end(),vec_2.begin(),vec_2.end());
+        return 1;
     }
 
     if(p.vo==vm && p.ve<vm){
-        std::cout<<"pause request"<<std::endl;
-        std::vector<sc_period> vec_1;
-        t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,p.ve,p.acs,p.ace},vec_1);
+
+        std::vector<sc_period> vec_1, vec_2;
+        T s2=0;
+
+        t4_acs({sc_period_id::id_none,p.vo,vm,p.acs,0},vec_1);
+        t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,p.ve,0,p.ace},vec_2);
+
+        s2=p.ncs-to_stot_pvec(vec_2);
+
+        if(s2>0){ //! Steady period to fit s.
+            t4_acs({sc_period_id::id_none,p.vo,vm,p.acs,0,s2},vec_1);
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            pvec.insert(pvec.end(),vec_2.begin(),vec_2.end());
+            return 1;
+        }
+
+        //! minimal curve.
         pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+        pvec.insert(pvec.end(),vec_2.begin(),vec_2.end());
         return 1;
     }
 
     if(p.vo==vm && p.ve>vm){
 
+        std::vector<sc_period> vec_1, vec_2;
+        T s2=0;
+
+        t4_acs({sc_period_id::id_none,p.vo,vm,p.acs,0},vec_1);
+        t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,p.ve,0,p.ace},vec_2);
+
+        s2=p.ncs-to_stot_pvec(vec_2);
+
+        if(s2>0){ //! Steady period to fit s.
+            t4_acs({sc_period_id::id_none,p.vo,vm,p.acs,0,s2},vec_1);
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            pvec.insert(pvec.end(),vec_2.begin(),vec_2.end());
+            return 1;
+        }
+
+        //! minimal curve.
+        pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+        pvec.insert(pvec.end(),vec_2.begin(),vec_2.end());
+        return 1;
     }
 
     if(p.vo<vm && p.ve>vm){ // Stay below vm.
 
+        std::vector<sc_period> vec_1, vec_3;
+        sc_period p4;
+        T stot=0;
+
+        t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,vm,p.acs,0},vec_1);
+        t7_t1_t2_t3_t5({sc_period_id::id_none,vm,p.ve,0,p.ace},vec_3);
+
+        stot=to_stot_pvec(vec_1)+to_stot_pvec(vec_3);
+
+        if(p.ncs==stot){
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+            return 1;
+        }
+        if(p.ncs>stot){ //! Need t4.
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            t4(vm,p.ncs-stot,p4);
+            pvec.push_back(p4);
+            pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+            return 1;
+        }
+        T last_vm=0;
+        if(p.ncs<stot){ //! Sample vm down, add t4 to fit s.
+            for(T i=vm; i>p.vo; i-=0.1*vm){ //! Sampling 10%.
+
+                t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,vm,p.acs,0},vec_1);
+                t7_t1_t2_t3_t5({sc_period_id::id_none,vm,p.ve,0,p.ace},vec_3);
+
+                stot=to_stot_pvec(vec_1)+to_stot_pvec(vec_3);
+
+                if(stot<=p.ncs){
+
+                    t4(i,p.ncs-stot,p4);
+
+                    pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+                    pvec.push_back(p4);
+                    pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+
+                    return 1;
+                }
+
+                last_vm=i;
+            }
+        }
+
+        //! Minimal curve.
+        pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+        pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
     }
 
     if(p.vo>vm && p.ve<vm){
 
+        std::vector<sc_period> vec_1, vec_3;
+        sc_period p4;
+        T stot=0;
+
+        t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,vm,p.acs,0},vec_1);
+        t3_t5_t6_t7_t1({sc_period_id::id_none,vm,p.ve,0,p.ace},vec_3);
+
+        stot=to_stot_pvec(vec_1)+to_stot_pvec(vec_3);
+
+        if(p.ncs==stot){
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+            return 1;
+        }
+        if(p.ncs>stot){ //! Need t4.
+            pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+            t4(vm,p.ncs-stot,p4);
+            pvec.push_back(p4);
+            pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+            return 1;
+        }
+        T last_vm=0;
+        if(p.ncs<stot){ //! Sample vm down, add t4 to fit s.
+            for(T i=vm; i>std::max(p.vo,p.ve); i-=0.1*vm){ //! Sampling 10%.
+
+                t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,i,p.acs,0},vec_1);
+                t3_t5_t6_t7_t1({sc_period_id::id_none,i,p.ve,0,p.ace},vec_3);
+
+                stot=to_stot_pvec(vec_1)+to_stot_pvec(vec_3);
+
+                if(stot<=p.ncs){
+
+                    t4(i,p.ncs-stot,p4);
+
+                    pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+                    pvec.push_back(p4);
+                    pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
+
+                    return 1;
+                }
+
+                last_vm=i;
+            }
+        }
+
+        //! Minimal curve.
+        pvec.insert(pvec.end(),vec_1.begin(),vec_1.end());
+        pvec.insert(pvec.end(),vec_3.begin(),vec_3.end());
     }
 
-    return 1;
+    if(p.vo==vm && p.ve==vm){
+        sc_period pr;
+        t4(p.vo,p.ncs,pr);
+        pvec={pr};
+        return 1;
+    }
+    return 0;
 }
 
 T  sc_engine::to_stot_pvec(std::vector<sc_period> pvec){

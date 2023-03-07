@@ -59,6 +59,8 @@ void MainWindow::process(){
 
    // engine->t3_t5_t6_t7_t1(p,pvec);
 
+   // engine->t7_t1_t2_t3_t5(p,pvec);
+
     engine->process_curve(p,vm,pvec);
 
     auto end = std::chrono::high_resolution_clock::now();
