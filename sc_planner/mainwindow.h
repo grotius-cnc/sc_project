@@ -22,9 +22,9 @@ public:
 private slots:
     void thread();
 
-    void on_pushButton_planner_pressed();
+    void on_pushButton_start_pressed();
 
-    void on_pushButton_planner_pause_pressed();
+    void on_pushButton_pause_pressed();
 
     void on_pushButton_resume_pressed();
 
@@ -33,6 +33,8 @@ private slots:
     void clear_opengl();
 
     void set_opengl(T vel, T pos, T acc);
+
+    void on_pushButton_stop_pressed();
 
 private:
     Ui::MainWindow *ui;

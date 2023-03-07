@@ -13,6 +13,7 @@
 #define to_radians  M_PI/180.0
 #define to_degrees  (180.0/M_PI)
 #define ns_to_ms    0.000001
+#define epsilon 0.000001
 
 typedef double T;
 typedef bool B;
@@ -160,6 +161,10 @@ public:
     T to_stot_pvec(std::vector<sc_period> pvec);
 
     T to_ttot_pvec(std::vector<sc_period> pvec);
+
+    T netto_difference_of_2_values(T a, T b);
+
+    B is_inbetween_2_values(T a, T b, T value);
 };
 
 #endif

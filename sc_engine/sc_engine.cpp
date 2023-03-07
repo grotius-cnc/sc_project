@@ -673,7 +673,6 @@ int sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
 
     //! Pause requests:
     if(p.id==id_pause){
-        //! Most common pause request curve.
         if(p.vo>p.ve){
             t3_t5_t6_t7_t1({sc_period_id::id_none,p.vo,0,p.acs,0},pvec);
             return 1;
@@ -692,7 +691,6 @@ int sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
 
     //! Pause resume requests:
     if(p.id==id_pause_resume){
-        //! Most common pause request curve.
         if(p.vo>p.ve){
             t3_t5_t6_t7_t1({sc_period_id::id_none,0,p.ve,0,p.ace},pvec);
             return 1;
@@ -739,10 +737,6 @@ int sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
 
             if(p.ncs<stot){ //! Sample vm down, add t4 to fit s.
                 for(T i=vm; i>std::min(p.vo,p.ve); i-=0.01*vm){ //! Sampling 10%.
-
-                    std::cout<<"vo:"<<p.vo<<std::endl;
-                    std::cout<<"ve:"<<p.ve<<std::endl;
-                    std::cout<<"vm:"<<i<<std::endl;
 
                     t7_t1_t2_t3_t5({sc_period_id::id_none,p.vo,i,p.acs,0},vec_1);
                     t3_t5_t6_t7_t1({sc_period_id::id_none,i,p.ve,0,p.ace},vec_3);
@@ -1050,9 +1044,33 @@ T  sc_engine::to_ttot_pvec(std::vector<sc_period> pvec){
     return t;
 }
 
+T  sc_engine::netto_difference_of_2_values(T a, T b){
 
+    T diff=0;
+    if(a<=0 && b<=0){
+        a=std::abs(a);
+        b=std::abs(b);
+        diff=std::abs(a-b);
+    }
+    if(a>=0 && b>=0){
+        diff=std::abs(a-b);
+    }
+    if(a<=0 && b>=0){;
+        diff=std::abs(a)+b;
+    }
+    if(a>=0 && b<=0){
+        diff=a+std::abs(b);
+    }
+    return diff;
+}
 
+B sc_engine::is_inbetween_2_values(T a, T b, T value){
 
+    if(value>=a && value<=b){
+        return true;
+    }
+    return false;
+}
 
 
 
