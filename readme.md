@@ -27,7 +27,7 @@ a c++ sc_engine library
 
 ## Documentation
 
-[Forumula's and defenitions](https://github.com/grotius-cnc/sc_project/blob/main/sc_engine/sc_formula.h)
+[Formula's and defenitions](https://github.com/grotius-cnc/sc_project/blob/main/sc_engine/sc_formula.h)
 
 
 
