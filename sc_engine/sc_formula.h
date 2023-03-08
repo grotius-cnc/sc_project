@@ -4,6 +4,32 @@
 
 /* Forumula cheet sheet.
 
+    - "jm" jerk max
+    - "a" acceleration
+    - "acc" acceleration stage
+    - "dcc" deceleration stage
+    - "as" acceleration at inflection point
+
+        `as=2*a`
+
+    - "acs" acceleration start
+    - "ace" acceleration end
+    - "vo" velocity start
+    - "ve" velocity end
+    - "vm" velocity max
+    - "s" displacement
+    - "dv" delta velocity
+
+        `time from 0 acc to as, back to 0 dcc`
+
+    - "t1" concave acc period
+    - "t2" linear acc period
+    - "t3" convex acc period
+    - "t4" steady period
+    - "t5" convex dcc period
+    - "t6" linear dcc period
+    - "t7" concave dcc period
+
     Info    : https://www.wolframalpha.com/widgets/view.jsp?id=c778a2d8bf30ef1d3c2d6bc5696defad
 
     t       time.
