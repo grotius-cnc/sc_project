@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>797</width>
-    <height>596</height>
+    <width>768</width>
+    <height>538</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>sc builder</string>
+   <string>sc_curves</string>
   </property>
   <property name="styleSheet">
    <string notr="true">background-color: rgb(51, 57, 59);
@@ -39,6 +39,12 @@ color: rgb(255, 255, 255);
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
          </property>
          <property name="title">
           <string>Input</string>
@@ -235,6 +241,12 @@ color: rgb(255, 255, 255);
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="title">
           <string>Output</string>
          </property>
@@ -308,7 +320,7 @@ color: rgb(255, 255, 255);
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>797</width>
+     <width>768</width>
      <height>22</height>
     </rect>
    </property>

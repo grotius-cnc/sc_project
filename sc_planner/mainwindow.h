@@ -36,11 +36,20 @@ private slots:
 
     void on_pushButton_stop_pressed();
 
+    void on_doubleSpinBox_adaptive_feed_valueChanged(double arg1);
+
+    void on_pushButton_released();
+
 private:
     Ui::MainWindow *ui;
     QTimer *timer;
     opengl *myOpenGl;
 
     sc_engine *engine = new sc_engine();
+
+    QString original="background-color: rgb(51, 57, 59);\ncolor: rgb(255, 255, 255);\n";
+    QString orange="background-color: rgb(170, 85, 0);\ncolor: rgb(255, 255, 255);\n";
+    QString green="background-color: rgb(85, 170, 0);\ncolor: rgb(255, 255, 255);\n";
+    QString red="background-color: rgb(255, 0, 0);\ncolor: rgb(255, 255, 255);\n";
 };
 #endif

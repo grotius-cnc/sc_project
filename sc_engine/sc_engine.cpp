@@ -637,6 +637,8 @@ void sc_engine::interpolate_period(T at_time,
     }
 }
 
+
+
 void sc_engine::interpolate_periods(T at_time,
                                     std::vector<sc_period> pvec,
                                     T &pos,
@@ -663,6 +665,33 @@ void sc_engine::interpolate_periods(T at_time,
         }
 
         t+=pvec.at(i).nct;
+        s+=pvec.at(i).ncs;
+    }
+}
+
+void sc_engine::interpolate_periods(T at_time,
+                                    std::vector<sc_period> pvec,
+                                    UI period_nr,
+                                    T &pos,
+                                    T &vel,
+                                    T &acc,
+                                    bool &finished){
+    T s=0;
+
+    if(at_time>to_ttot_pvec(pvec)){
+        //! std::cout<<"finished"<<std::endl;
+        finished=true;
+        return;
+    }
+
+    for(uint i=0; i<pvec.size(); i++){
+
+        if(i==period_nr){
+            interpolate_period(at_time,pvec.at(i),pos,vel,acc);
+            pos+=s;
+            return;
+        }
+
         s+=pvec.at(i).ncs;
     }
 }

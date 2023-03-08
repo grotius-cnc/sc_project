@@ -95,8 +95,8 @@ void opengl::paintGL()
     glColor3f(255,255,0);
     glBegin(GL_LINE_STRIP);
     t=0;
-    for(uint i=0; i<j1vec.size(); i++){
-        glVertex2d(t*xScale,this->height()-(j1vec.at(i)*scale1));
+    for(uint i=0; i<j1vec.size(); i++){ //! Displacement yellow.
+        glVertex2d(t*xScale,(this->height()-yShift)-(j1vec.at(i)*scale1));
         t+=interval;
     }
     glEnd();

@@ -12,6 +12,7 @@ int gui_delay=0; //! To keep a good gui performance using opengl.
 std::vector<sc_engine::sc_period>  motionvec, runvec, pausevec, resumevec, vmvec;
 
 UI motionvec_nr=0;      //! Current motionvec counter.
+UI start_line_nr=0;
 
 B run_finished=0;       //! Flags.
 B pause_finished=0;
@@ -28,23 +29,24 @@ B vm_interupt=0;
 
 T position=0;        //! Overall absolute position.
 T velocity=0;
+T velocity_max=0;
 T acceleration=0;
+T progress=0;
+T adaptive_feed=0;
 T stored_velocity=0;
+T stored_velocity_max=0;
 T stored_position=0;
 T stored_acceleration=0;
 T stored_ace=0;
 T stored_ve=0;
-T store_startpos=0;
+T stored_startpos=0;
 T stored_endpos=0;
 T timer_run=0;
-T timer_pause=0;
-T timer_resume=0;
+T timer_apaptive_feed=0;
+T servo_cycle=0.01;
+
 T displacement_run=0;
 T displacement_run_old=0;
-T displacement_pause=0;
-T displacement_pause_old=0;
-T displacement_resume=0;
-T displacement_resume_old=0;
 
 T millisecond=0;
 
@@ -57,8 +59,8 @@ MainWindow::MainWindow(QWidget *parent)
     //! OpenGl output to verify.
     myOpenGl = new opengl();
     //! Graph scale.
-    myOpenGl->setScale(25,25);
-    myOpenGl->setInterval(0.01);
+    myOpenGl->setScale(15,15);
+    myOpenGl->setInterval(servo_cycle);
     myOpenGl->set2VecShift(100);
     myOpenGl->set1VecScale(0.1);
 
@@ -96,11 +98,33 @@ void MainWindow::set_opengl(T vel, T pos, T acc){
 //! This function simulates the servo cycle. And is called every 1 millisecond.
 void MainWindow::thread(){
 
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start_clock = std::chrono::high_resolution_clock::now();
 
-    if(vm_interupt && !pause && !pause_resume){
+    if(pause){
+        if(!pause_init){
+            stored_velocity_max=velocity_max;
+            velocity_max=0;
+            vm_interupt=1;
+            pause_init=1;
+        }
+    }
 
-        T ncs=stored_endpos-position;
+    if(pause_resume){
+        pause=false;
+        if(!pause_resume_init){
+            velocity_max=stored_velocity_max;
+            vm_interupt=1;
+            pause_resume_init=1;
+        }
+        pause_resume=0;
+    }
+
+    if(vm_interupt){
+
+        timer_apaptive_feed=0;
+        T dtg=engine->netto_difference_of_2_values(stored_endpos,position);
+
+        std::cout<<"interupt pending, dtg:"<<dtg<<std::endl;
 
         vmvec.clear();
         engine->process_curve({sc_engine::sc_period_id::id_run, //! Id run works ok for interupts.
@@ -108,11 +132,11 @@ void MainWindow::thread(){
                                stored_ve,
                                acceleration,
                                stored_ace,
-                               ncs,
+                               dtg,
                                position,
-                               stored_endpos}, ui->doubleSpinBox_vm->value(), vmvec);
+                               stored_endpos}, velocity_max, vmvec);
 
-        if(engine->to_stot_pvec(vmvec)==ncs){ //! Apply interupt if it fits in motion s.
+        if(dtg>5){ //! Execute pause sequence away from waypoints.
 
             displacement_run=0;
             displacement_run_old=0;
@@ -120,18 +144,18 @@ void MainWindow::thread(){
 
             runvec.clear();
             runvec=vmvec;
+            vm_interupt=0;
         }
-
-        vm_interupt=0;
     }
 
-    if(run && !pause && !pause_resume && motionvec.size()>0){
+    if(run && motionvec.size()>0){
 
         if(!run_init){
-            motionvec_nr=0;
+            motionvec_nr=-1;
             runvec.clear();
             run_finished=1;
             timer_run=0;
+            timer_apaptive_feed=0;
             displacement_run_old=0;
             displacement_run=0;
             velocity=0;
@@ -139,46 +163,71 @@ void MainWindow::thread(){
             run_init=1;
         }
         if(run_finished){
-            if(motionvec_nr<motionvec.size()){
 
-                std::cout<<"run finished:"<<std::endl;
+            std::cout<<"run finished:"<<std::endl;
 
-                sc_engine::sc_period p=motionvec.at(motionvec_nr);
-                p.ncs=engine->netto_difference_of_2_values(p.endpos,p.startpos);
+            motionvec_nr++;
 
-                stored_ace=p.ace;
-                stored_ve=p.ve;
-                store_startpos=p.startpos;
-                stored_endpos=p.endpos;
-
-                engine->process_curve(p,ui->doubleSpinBox_vm->value(),runvec);
-                if(p.endpos<p.startpos){
-                    motion_reverse=1;
-                } else {
-                    motion_reverse=0;
-                }
-                motionvec_nr++;
-
-                run_finished=0;
+            if(start_line_nr>motionvec_nr){ //! Set the start line nr.
+                motionvec_nr=start_line_nr;
             }
+
+            timer_apaptive_feed=0;
+
+            if(motionvec_nr>motionvec.size()-1){
+                motionvec_nr=motionvec.size()-1;
+                stop=1;
+            }
+
+            motionvec.at(motionvec_nr).ncs=engine->netto_difference_of_2_values(motionvec.at(motionvec_nr).endpos,
+                                                                                motionvec.at(motionvec_nr).startpos);
+
+            sc_engine::sc_period p=motionvec.at(motionvec_nr);
+
+            stored_ace=p.ace;
+            stored_ve=p.ve;
+            stored_startpos=p.startpos;
+            stored_endpos=p.endpos;
+
+            engine->process_curve(p,velocity_max,runvec);
+            if(p.endpos<p.startpos){
+                motion_reverse=1;
+            } else {
+                motion_reverse=0;
+            }
+
+            run_finished=0;
         }
 
         engine->interpolate_periods(timer_run,runvec,displacement_run,velocity,acceleration,run_finished);
 
         if(!run_finished){
+
+            progress=displacement_run/motionvec.at(motionvec_nr).ncs;
+
             if(!motion_reverse){
                 position+=displacement_run-displacement_run_old;
             } else {
                 position-=displacement_run-displacement_run_old;
             }
             displacement_run_old=displacement_run;
-            timer_run+=0.01;
+
+            timer_run+=servo_cycle*adaptive_feed;
+            timer_apaptive_feed+=servo_cycle*adaptive_feed;
+
+            std::cout<<"timer adaptive feed:"<<timer_apaptive_feed<<std::endl;
+
+            if(timer_apaptive_feed<0){
+                timer_apaptive_feed=0;
+                adaptive_feed=0;
+            }
+
             set_opengl(velocity,position,acceleration);
         }
     }
 
     if(stop){
-        run=0;
+        run=false;
         run_init=0;
         pause=0;
         pause_init=0;
@@ -186,126 +235,8 @@ void MainWindow::thread(){
         pause_resume_init=0;
     }
 
-    if(pause){
-
-        if(!pause_init){
-            pausevec.clear();
-            pause_finished=0;
-
-            stored_velocity=velocity;
-            stored_position=position;
-            stored_acceleration=acceleration;
-
-            T ve=0, ace=0;
-            engine->process_curve({sc_engine::sc_period_id::id_pause, //! Id_pause produces a short curve without processing vm.
-                                   velocity,
-                                   ve,
-                                   acceleration,
-                                   ace}, ui->doubleSpinBox_vm->value(), pausevec);
-            timer_pause=0;
-            displacement_pause=0;
-            displacement_pause_old=0;
-            pause_init=1;
-        }
-
-        engine->interpolate_periods(timer_pause,pausevec,displacement_pause,velocity,acceleration,pause_finished);
-
-        if(!pause_finished){
-            if(!motion_reverse){
-                position+=displacement_pause-displacement_pause_old;
-            } else {
-                position-=displacement_pause-displacement_pause_old;
-            }
-
-            displacement_pause_old=displacement_pause;
-            timer_pause+=0.01;
-
-            set_opengl(velocity,position,acceleration);
-        }
-    }
-
-    if(pause_resume){
-
-        // Set up motion resume. Find current position in the motionvec nr's.
-        UI restart_nr=0;
-        UI reverse=0;
-
-        for(uint i=0; i<motionvec.size(); i++){ //! Find current position in the motionvec.
-
-            //! The position can be everywhere. Find another solution tomorrow to find out in
-            //! wich motionvec nr we are after machine is stopped in pause.
-
-           std::cout<<"starpos: "<<motionvec.at(i).startpos<<std::endl;
-           std::cout<<"endpos: "<<motionvec.at(i).endpos<<std::endl;
-
-           if(motionvec.at(i).startpos<motionvec.at(i).endpos){
-               std::cout<<"mption fwd"<<std::endl;
-               reverse=0;
-           } else {
-               std::cout<<"mption reverse"<<std::endl;
-               reverse=1;
-           }
-
-           if(engine->is_inbetween_2_values(motionvec.at(i).startpos,motionvec.at(i).endpos,position)){
-               std::cout<<"position is at i:"<<i<<std::endl;
-           }
-
-//            if(!reverse &&motionvec.at(i).endpos>position){
-//                restart_nr=i;
-
-//                std::cout<<"fwd found .. position:"<<position<<std::endl;
-//                std::cout<<"fwd found .. restart nr:"<<i<<std::endl;
-//                break;
-//            }
-
-//            if(reverse &&motionvec.at(i).endpos<position){
-//                restart_nr=i;
-
-//                std::cout<<"rev found .. position:"<<position<<std::endl;
-//                std::cout<<"rev found .. restart nr:"<<i<<std::endl;
-//                break;
-//            }
-
-       }
-
-        std::cout<<"reverse flag:"<<reverse<<std::endl;
-        std::cout<<"restart nr:"<<restart_nr<<std::endl;
-        std::cout<<"cur motionvec nr:"<<motionvec_nr<<std::endl;
-
-        T dtg=engine->netto_difference_of_2_values(motionvec.at(restart_nr).endpos,position);
-
-        std::cout<<"dtg:"<<dtg<<std::endl;
-
-        //! Edit the current run motionblock to finish current motion.
-        T vo=0, ve=motionvec.at(restart_nr).ve, acs=0, ace=motionvec.at(restart_nr).ace;
-        runvec.clear();
-        engine->process_curve({sc_engine::sc_period_id::id_run, //! Id_pause produces a short curve without processing vm.
-                               vo,
-                               ve,
-                               acs,
-                               ace,
-                               dtg}, ui->doubleSpinBox_vm->value(), runvec);
-
-        //! Reset some run values.
-        run_init=1;
-        run_finished=0;
-        timer_run=0;
-        displacement_run_old=0;
-
-        if(motionvec.at(restart_nr).endpos<motionvec.at(restart_nr).startpos){
-            motion_reverse=true;
-        } else {
-            motion_reverse=false;
-        }
-
-        motionvec_nr=restart_nr+1;
-
-        //! Go, do your best.
-        pause_resume=0;
-    }
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+    auto stop_clock = std::chrono::high_resolution_clock::now();
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(stop_clock - start_clock);
     millisecond=ns.count()*ns_to_ms;
 
     gui_delay++;
@@ -313,6 +244,33 @@ void MainWindow::thread(){
         ui->label_planner_pos->setText(QString::number(position,'f',3));
         ui->label_planner_vel->setText(QString::number(velocity,'f',3));
         ui->label_planner_acc->setText(QString::number(acceleration,'f',3));
+
+        ui->label_planner_block_nr->setText(QString::number(motionvec_nr,'f',3));
+        ui->label_progress->setText(QString::number(progress,'f',3));
+
+        if(pause){
+            ui->pushButton_pause->setStyleSheet(orange);
+        } else {
+            ui->pushButton_pause->setStyleSheet(original);
+        }
+
+        if(pause_resume){
+            ui->pushButton_resume->setStyleSheet(green);
+        } else {
+            ui->pushButton_resume->setStyleSheet(original);
+        }
+
+        if(run){
+            ui->pushButton_start->setStyleSheet(green);
+        } else {
+            ui->pushButton_start->setStyleSheet(original);
+        }
+
+        if(stop){
+            ui->pushButton_stop->setStyleSheet(red);
+        } else {
+            ui->pushButton_stop->setStyleSheet(original);
+        }
 
         if(motion_reverse){
             ui->checkBox_motion_reverse->setChecked(1);
@@ -332,7 +290,6 @@ void MainWindow::on_pushButton_start_pressed()
 
     T vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, startpos=0, endpos=0;
 
-
     motionvec.clear();
 
     //! Load the waypoints, the ncs is mainly used in by the engine class.
@@ -343,44 +300,28 @@ void MainWindow::on_pushButton_start_pressed()
     motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,startpos,endpos});
 
     //! Execute.
+    velocity_max=ui->doubleSpinBox_vm->value();
+    adaptive_feed=ui->doubleSpinBox_adaptive_feed->value();
+    start_line_nr=ui->spinBox_start_line->value();
     run=1;
     stop=0;
     run_init=0;
-    pause=0;
-    pause_init=0;
-    pause_resume=0;
-    pause_resume_init=0;
-
-    position=0; //! To avoid a position reset, out-comment this one.
+    // position=0; //! To avoid a position reset, out-comment this one.
 
     std::cerr<<"start."<<std::endl;
 }
 
 void MainWindow::on_pushButton_pause_pressed()
 {
-    if(pause==1){
-        return;
-    }
     pause=1;
     pause_init=0;
-    pause_resume=0;
-
     std::cerr<<"pause."<<std::endl;
 }
 
 void MainWindow::on_pushButton_resume_pressed()
 {
-    if(!pause || !pause_finished){
-        std::cerr<<"no pause or pause busy."<<std::endl;
-        return;
-    }
-    if(pause_resume==1){
-        return;
-    }
     pause_resume=1;
     pause_resume_init=0;
-    pause=0;
-
     std::cerr<<"pause resume."<<std::endl;
 }
 
@@ -389,6 +330,7 @@ void MainWindow::on_doubleSpinBox_vm_valueChanged(double arg1)
 {
     arg1=0;
     vm_interupt=1;
+    velocity_max=ui->doubleSpinBox_vm->value();
     std::cerr<<"vm interupt."<<std::endl;
 }
 
@@ -398,24 +340,12 @@ void MainWindow::on_pushButton_stop_pressed()
     std::cerr<<"stop."<<std::endl;
 }
 
+void MainWindow::on_doubleSpinBox_adaptive_feed_valueChanged(double arg1)
+{
+    adaptive_feed=arg1;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void MainWindow::on_pushButton_released()
+{
+      position=ui->lineEdit_set_position->text().toDouble();
+}

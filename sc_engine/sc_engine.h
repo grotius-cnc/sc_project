@@ -95,11 +95,18 @@ public:
                             T &vel,
                             T &acc);
 
-    void interpolate_periods(T at_time,
-                            std::vector<sc_period> pvec,
-                            T &pos,
-                            T &vel,
-                            T &acc, bool &finished);
+    void interpolate_periods(T at_time, //! Uses the time of the motionvec.
+                             std::vector<sc_period> pvec,
+                             T &pos,
+                             T &vel,
+                             T &acc, bool &finished);
+
+    void interpolate_periods(T at_time, //! Used the time of the period_nr.
+                             std::vector<sc_period> pvec,
+                             UI period_nr,
+                             T &pos,
+                             T &vel,
+                             T &acc, bool &finished);
 
     T as=0;
     T a=0;
