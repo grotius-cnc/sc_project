@@ -7,9 +7,13 @@ project(${PROJECT} CXX C) # Asm is optional.
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
+# Set path to your qt dir.
 set(CMAKE_PREFIX_PATH "/opt/qt-creator/5.15.1/gcc_64/lib/cmake/Qt5")
+# Set path to eigen3, for install $ sudo apt-get install libeigen3-dev
+include_directories("/usr/include/eigen3/Eigen")
 
 add_subdirectory(${SRC_DIR}/sc_engine)
+add_subdirectory(${SRC_DIR}/sc_interpolate)
 add_subdirectory(${SRC_DIR}/sc_primitives_gui)
 add_subdirectory(${SRC_DIR}/sc_curves_gui)
 add_subdirectory(${SRC_DIR}/sc_planner)

@@ -10,7 +10,6 @@ add_library(sc_engine SHARED
     sc_formula.h
     sc_engine.cpp
     sc_engine.h
-    sc_intersect.h
     )
 
 target_compile_definitions(sc_engine PRIVATE SC_ENGINE_LIBRARY)

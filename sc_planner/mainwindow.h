@@ -6,6 +6,7 @@
 #include <chrono>
 #include <opengl.h>
 #include <../sc_engine/sc_engine.h>
+#include <../sc_interpolate/sc_interpolate.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -40,12 +41,19 @@ private slots:
 
     void on_pushButton_released();
 
+    void on_pushButton_test_pressed();
+
 private:
     Ui::MainWindow *ui;
     QTimer *timer;
     opengl *myOpenGl;
 
     sc_engine *engine = new sc_engine();
+    sc_interpolate *interpolate= new sc_interpolate();
+    std::vector<sc_interpolate::sc_block> blockvec; //! The gcode coordinates.
+    sc_pnt xyz; //! Interpolation results.
+    sc_dir abc;
+    sc_ext uvw;
 
     QString original="background-color: rgb(51, 57, 59);\ncolor: rgb(255, 255, 255);\n";
     QString orange="background-color: rgb(170, 85, 0);\ncolor: rgb(255, 255, 255);\n";

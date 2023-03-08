@@ -124,10 +124,9 @@ void MainWindow::thread(){
         timer_apaptive_feed=0;
         T dtg=engine->netto_difference_of_2_values(stored_endpos,position);
 
-        std::cout<<"interupt pending, dtg:"<<dtg<<std::endl;
-
         vmvec.clear();
-        engine->process_curve({sc_engine::sc_period_id::id_run, //! Id run works ok for interupts.
+
+        engine->process_curve({sc_engine::sc_period_id::id_run,
                                velocity,
                                stored_ve,
                                acceleration,
@@ -163,8 +162,6 @@ void MainWindow::thread(){
             run_init=1;
         }
         if(run_finished){
-
-            std::cout<<"run finished:"<<std::endl;
 
             motionvec_nr++;
 
@@ -203,8 +200,6 @@ void MainWindow::thread(){
 
         if(!run_finished){
 
-            progress=displacement_run/motionvec.at(motionvec_nr).ncs;
-
             if(!motion_reverse){
                 position+=displacement_run-displacement_run_old;
             } else {
@@ -215,12 +210,15 @@ void MainWindow::thread(){
             timer_run+=servo_cycle*adaptive_feed;
             timer_apaptive_feed+=servo_cycle*adaptive_feed;
 
-            std::cout<<"timer adaptive feed:"<<timer_apaptive_feed<<std::endl;
-
             if(timer_apaptive_feed<0){
                 timer_apaptive_feed=0;
                 adaptive_feed=0;
             }
+
+            progress=displacement_run/engine->to_stot_pvec(runvec);
+
+            //! Todo interpolate overall, just like timer_run,
+            // blockvec.at(motionvec_nr).interpolate(progress,xyz,abc,uvw);
 
             set_opengl(velocity,position,acceleration);
         }
@@ -247,6 +245,16 @@ void MainWindow::thread(){
 
         ui->label_planner_block_nr->setText(QString::number(motionvec_nr,'f',3));
         ui->label_progress->setText(QString::number(progress,'f',3));
+
+        ui->label_x->setText(QString::number(xyz.x,'f',3));
+        ui->label_y->setText(QString::number(xyz.y,'f',3));
+        ui->label_z->setText(QString::number(xyz.z,'f',3));
+        ui->label_a->setText(QString::number(abc.a,'f',3));
+        ui->label_b->setText(QString::number(abc.b,'f',3));
+        ui->label_c->setText(QString::number(abc.c,'f',3));
+        ui->label_u->setText(QString::number(uvw.u,'f',3));
+        ui->label_v->setText(QString::number(uvw.v,'f',3));
+        ui->label_w->setText(QString::number(uvw.w,'f',3));
 
         if(pause){
             ui->pushButton_pause->setStyleSheet(orange);
@@ -287,17 +295,32 @@ void MainWindow::thread(){
 void MainWindow::on_pushButton_start_pressed()
 {
     clear_opengl();
-
-    T vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, startpos=0, endpos=0;
-
     motionvec.clear();
+    T vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, start=0, end=0;
 
-    //! Load the waypoints, the ncs is mainly used in by the engine class.
-    vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, startpos=0, endpos=100;
-    motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,startpos,endpos});
+    //! Choose one:
+    B example_0=1;
+    B example_1=0;
 
-    vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, startpos=100, endpos=-200;
-    motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,startpos,endpos});
+
+    if(example_0){
+        //! Load the waypoints, the ncs is mainly used in by the engine class, this for info.
+        vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, start=0, end=100;
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,start,end});
+
+        vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, start=100, end=-200;
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,start,end});
+    }
+
+    if(example_1){
+        start=0;
+        sc_interpolate::sc_block block;
+        block.primitive_id=sc_interpolate::sc_primitive_id::id_line;
+        block.set_pnt({0,0,0},{200,00,0});
+        end=block.blocklenght();
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,start,end});
+        blockvec.push_back(block);
+    }
 
     //! Execute.
     velocity_max=ui->doubleSpinBox_vm->value();
@@ -347,5 +370,10 @@ void MainWindow::on_doubleSpinBox_adaptive_feed_valueChanged(double arg1)
 
 void MainWindow::on_pushButton_released()
 {
-      position=ui->lineEdit_set_position->text().toDouble();
+    position=ui->lineEdit_set_position->text().toDouble();
+}
+
+void MainWindow::on_pushButton_test_pressed()
+{
+
 }

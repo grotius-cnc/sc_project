@@ -2,7 +2,7 @@
 #define SC_ENGINE_H
 
 //! Author  : SKynet Cyberdyne
-//! Licence : GPL2
+//! Licence : MIT
 //! Date    : 2023
 
 #include <iostream>
@@ -13,24 +13,11 @@
 #define to_radians  M_PI/180.0
 #define to_degrees  (180.0/M_PI)
 #define ns_to_ms    0.000001
-#define epsilon 0.000001
 
 typedef double T;
 typedef bool B;
 typedef int I;
 typedef uint UI;
-
-//! Considerations :
-//!
-//! 1.  When pause request is near the end of the path
-//!     and the pause can not be performed inside the s.
-//!     The process_curve will refuse to pause and will
-//!     pause at end of curve.
-//!
-//! 2.  If a motion is out of scope, the engine
-//!     will output a minimal curve based on the input : ve, ace.
-//!     The output s will overshoot the input s.
-//!
 
 //! Scurve back end.
 class sc_engine {
@@ -97,13 +84,6 @@ public:
 
     void interpolate_periods(T at_time, //! Uses the time of the motionvec.
                              std::vector<sc_period> pvec,
-                             T &pos,
-                             T &vel,
-                             T &acc, bool &finished);
-
-    void interpolate_periods(T at_time, //! Used the time of the period_nr.
-                             std::vector<sc_period> pvec,
-                             UI period_nr,
                              T &pos,
                              T &vel,
                              T &acc, bool &finished);

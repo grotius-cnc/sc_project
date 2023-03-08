@@ -34,10 +34,6 @@ set(PROJECT_SOURCES
         mainwindow.ui
         opengl.h
         opengl.cpp
-        sc_arcs.h
-        sc_arcs.cpp
-        sc_lines.h
-        sc_lines.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -66,4 +62,28 @@ set_target_properties(engine PROPERTIES
     IMPORTED_LOCATION "${BUILD_DIR}/../sc_engine/libsc_engine.so"
     )
 
-target_link_libraries(sc_planner PRIVATE Qt${QT_VERSION_MAJOR}::Widgets -lGL pthread rt engine)
+add_library(interpolate SHARED IMPORTED) # or STATIC instead of SHARED
+set_target_properties(interpolate PROPERTIES
+    IMPORTED_LOCATION "${BUILD_DIR}/../sc_interpolate/libsc_interpolate.so"
+    )
+
+target_link_libraries(sc_planner PRIVATE Qt${QT_VERSION_MAJOR}::Widgets -lGL pthread rt engine interpolate )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
