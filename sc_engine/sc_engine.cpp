@@ -1047,7 +1047,7 @@ T  sc_engine::to_ttot_pvec(std::vector<sc_period> pvec){
 T  sc_engine::netto_difference_of_2_values(T a, T b){
 
     T diff=0;
-    if(a<=0 && b<=0){
+    if(a<0 && b<0){
         a=std::abs(a);
         b=std::abs(b);
         diff=std::abs(a-b);
@@ -1072,7 +1072,27 @@ B sc_engine::is_inbetween_2_values(T a, T b, T value){
     return false;
 }
 
+V sc_engine::curve_progress(std::vector<sc_period> pvec,
+                            T position,
+                            T &curve_progress,
+                            T &curve_dtg,
+                            UI &curve_nr){
 
+    T l=0;
+    for(uint i=0; i<pvec.size(); i++){
+
+        if(position>=l && position<=l+pvec.at(i).ncs){
+
+            curve_nr=i;
+            position-=l;
+            curve_progress=position/pvec.at(i).ncs; //! 0-1
+            curve_dtg=pvec.at(i).ncs-position;
+            return;
+        }
+
+        l+=pvec.at(i).ncs;
+    }
+}
 
 
 

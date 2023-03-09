@@ -18,6 +18,7 @@ typedef double T;
 typedef bool B;
 typedef int I;
 typedef uint UI;
+typedef void V;
 
 //! Scurve back end.
 class sc_engine {
@@ -56,10 +57,6 @@ public:
         T ncs=0;
         //! Netto curve time.
         T nct=0;
-        //! Curve absolute start position.
-        T startpos=0;
-        //! Curve absolute end position.
-        T endpos=0;
     };
 
     struct sc_motion {
@@ -88,6 +85,11 @@ public:
                              T &vel,
                              T &acc,
                              bool &finished);
+
+    //! From traject progress to local curve progress. 0-1.
+    V curve_progress(std::vector<sc_period> pvec,
+                     T position,
+                     T &curve_progress, T &curve_dtg, UI &curve_nr);
 
     T as=0;
     T a=0;

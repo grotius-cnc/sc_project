@@ -13,6 +13,7 @@ std::vector<sc_engine::sc_period>  motionvec, runvec, pausevec, resumevec, vmvec
 
 UI motionvec_nr=0;      //! Current motionvec counter.
 UI start_line_nr=0;
+UI curve_nr=0;
 
 B run_finished=0;       //! Flags.
 B pause_finished=0;
@@ -24,15 +25,15 @@ B pause_resume=0;
 B run_init=0;
 B pause_init=0;
 B pause_resume_init=0;
-B motion_reverse=0;
 B vm_interupt=0;
 
 T position=0;        //! Overall absolute position.
-T position_interpolation=0;
 T velocity=0;
 T velocity_max=0;
 T acceleration=0;
-T progress=0;
+T total_displacement=0;
+T curve_progress=0;
+T traject_progress=0;
 T adaptive_feed=0;
 T stored_velocity=0;
 T stored_velocity_max=0;
@@ -40,14 +41,15 @@ T stored_position=0;
 T stored_acceleration=0;
 T stored_ace=0;
 T stored_ve=0;
-T stored_startpos=0;
-T stored_endpos=0;
+T stored_vm=0;
+T curve_dtg=0;
+T stored_ncs=0;
 T timer_run=0;
 T timer_apaptive_feed=0;
 T servo_cycle=0.01;
 
-T displacement_run=0;
-T displacement_run_old=0;
+T displacement=0;
+T displacement_old=0;
 
 T millisecond=0;
 
@@ -123,27 +125,25 @@ void MainWindow::thread(){
     if(vm_interupt){
 
         timer_apaptive_feed=0;
-        T dtg=engine->netto_difference_of_2_values(stored_endpos,position);
 
         vmvec.clear();
-
         engine->process_curve({sc_engine::sc_period_id::id_run,
                                velocity,
                                stored_ve,
                                acceleration,
                                stored_ace,
-                               dtg,
-                               position,
-                               stored_endpos}, velocity_max, vmvec);
+                               curve_dtg}, velocity_max, vmvec);
 
-        if(dtg>5){ //! Execute pause sequence away from waypoints.
+        if(curve_nr==motionvec_nr && engine->to_stot_pvec(vmvec)<curve_dtg+0.00000001){
 
-            displacement_run=0;
-            displacement_run_old=0;
+            displacement=0;
+            displacement_old=0;
             timer_run=0;
 
             runvec.clear();
             runvec=vmvec;
+            vm_interupt=0;
+        } else {
             vm_interupt=0;
         }
     }
@@ -156,8 +156,8 @@ void MainWindow::thread(){
             run_finished=1;
             timer_run=0;
             timer_apaptive_feed=0;
-            displacement_run_old=0;
-            displacement_run=0;
+            displacement_old=0;
+            displacement=0;
             velocity=0;
             acceleration=0;
             run_init=1;
@@ -177,40 +177,23 @@ void MainWindow::thread(){
                 stop=1;
             }
 
-            if(!stop){ //! Otherwise progress value at end of motion is overwritten.
-                motionvec.at(motionvec_nr).ncs=engine->netto_difference_of_2_values(motionvec.at(motionvec_nr).endpos,
-                                                                                    motionvec.at(motionvec_nr).startpos);
+            sc_engine::sc_period p=motionvec.at(motionvec_nr);
+            stored_ace=p.ace;
+            stored_ve=p.ve;
+            stored_ncs=p.ncs;
 
-                sc_engine::sc_period p=motionvec.at(motionvec_nr);
+            engine->process_curve(p,velocity_max,runvec);
 
-                stored_ace=p.ace;
-                stored_ve=p.ve;
-                stored_startpos=p.startpos;
-                stored_endpos=p.endpos;
-
-                engine->process_curve(p,velocity_max,runvec);
-                if(p.endpos<p.startpos){
-                    motion_reverse=1;
-                } else {
-                    motion_reverse=0;
-                }
-
-                run_finished=0;
-            }
+            run_finished=0;
         }
 
-        engine->interpolate_periods(timer_run, runvec, displacement_run, velocity, acceleration, run_finished);
+        engine->interpolate_periods(timer_run, runvec, displacement, velocity, acceleration, run_finished);
 
         if(!run_finished){
 
-            if(!motion_reverse){
-                position+=displacement_run-displacement_run_old;
-                position_interpolation+=displacement_run-displacement_run_old;
-            } else {
-                position-=displacement_run-displacement_run_old;
-                position_interpolation-=displacement_run-displacement_run_old;
-            }
-            displacement_run_old=displacement_run;
+            position+=displacement-displacement_old;
+
+            displacement_old=displacement;
 
             timer_run+=servo_cycle*adaptive_feed;
             timer_apaptive_feed+=servo_cycle*adaptive_feed;
@@ -224,10 +207,14 @@ void MainWindow::thread(){
         }
     }
 
+    traject_progress=position/engine->to_stot_pvec(motionvec);
+    engine->curve_progress(motionvec,position,curve_progress,curve_dtg,curve_nr);
+    std::cout<<"curve nr:"<<curve_nr<<std::endl;
+    std::cout<<"curve dtg:"<<curve_dtg<<std::endl;
+
     if(blockvec.size()>0){
-        progress=position_interpolation/engine->to_stot_pvec(motionvec);
-        interpolate->interpolate_block(blockvec.at(motionvec_nr),
-                                       progress,xyz,abc,uvw);
+        interpolate->interpolate_blockvec(blockvec,
+                                          traject_progress,xyz,abc,uvw,curve_progress);
     }
 
     if(stop){
@@ -250,7 +237,8 @@ void MainWindow::thread(){
         ui->label_planner_acc->setText(QString::number(acceleration,'f',3));
 
         ui->label_planner_block_nr->setText(QString::number(motionvec_nr,'f',3));
-        ui->label_progress->setText(QString::number(progress,'f',3));
+        ui->label_traject_progress->setText(QString::number(traject_progress,'f',3));
+        ui->label_curve_progress->setText(QString::number(curve_progress,'f',3));
 
         ui->label_x->setText(QString::number(xyz.x,'f',3));
         ui->label_y->setText(QString::number(xyz.y,'f',3));
@@ -286,12 +274,6 @@ void MainWindow::thread(){
             ui->pushButton_stop->setStyleSheet(original);
         }
 
-        if(motion_reverse){
-            ui->checkBox_motion_reverse->setChecked(1);
-        } else {
-            ui->checkBox_motion_reverse->setChecked(0);
-        }
-
         ui->label_performance->setText(QString::number(millisecond,'f',6));
 
         gui_delay=0;
@@ -302,39 +284,53 @@ void MainWindow::on_pushButton_start_pressed()
 {
     clear_opengl();
     motionvec.clear();
-    T vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, start=0, end=0;
+    T vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0;
 
     //! Choose one:
     B example_0=0;
     B example_1=1;
 
-
     if(example_0){
         //! Load the waypoints, the ncs is mainly used in by the engine class, this for info.
-        vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, start=0, end=100;
-        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,start,end});
+        vo=0, ve=0, acs=0, ace=0, ncs=100, nct=0;
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
 
-        vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, start=100, end=-200;
-        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,start,end});
+        vo=0, ve=0, acs=0, ace=0, ncs=100, nct=0;
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
+
+        vo=0, ve=0, acs=0, ace=0, ncs=100, nct=0;
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
+
+        vo=0, ve=0, acs=0, ace=0, ncs=100, nct=0;
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
     }
 
     if(example_1){ //! Interpolating a 3d line and a 3d arc motion.
-        start=0;
+
+        blockvec.clear();
         sc_interpolate::sc_block block;
         block.primitive_id=sc_interpolate::sc_primitive_id::id_line;
-        block.set_pnt({0,0,0},{200,200,10});
-        block.set_dir({0,0,0},{45,90,180});
-        block.set_ext({0,0,0},{10,20,30});
-        end=block.blocklenght();
-        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,5,acs,ace,ncs,nct,start,end});
+        block.set_pnt({0,0,0},{0,100,0});
+        ncs=block.blocklenght();
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
         blockvec.push_back(block);
 
-        block.primitive_id=sc_interpolate::sc_primitive_id::id_arc;
-        block.set_pnt({200,200,10} /*arc start*/,{250,250,50} /* arc waypoint*/ ,{300,200,10} /*arc end*/);
-        block.set_dir({45,90,180},{0,0,0});
-        block.set_ext({10,20,30},{0,0,0});
-        end=block.blocklenght();
-        motionvec.push_back({sc_engine::sc_period_id::id_run,5,ve,acs,ace,ncs,nct,start,end});
+        block.primitive_id=sc_interpolate::sc_primitive_id::id_line;
+        block.set_pnt({0,100,0},{100,100,0});
+        ncs=block.blocklenght();
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
+        blockvec.push_back(block);
+
+        block.primitive_id=sc_interpolate::sc_primitive_id::id_line;
+        block.set_pnt({100,100,0},{100,0,0});
+        ncs=block.blocklenght();
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
+        blockvec.push_back(block);
+
+        block.primitive_id=sc_interpolate::sc_primitive_id::id_line;
+        block.set_pnt({100,0,0},{0,0,0});
+        ncs=block.blocklenght();
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
         blockvec.push_back(block);
     }
 
@@ -345,8 +341,7 @@ void MainWindow::on_pushButton_start_pressed()
     run=1;
     stop=0;
     run_init=0;
-    //! position=0; //! To avoid a position reset, out-comment this one.
-    position_interpolation=0;
+    position=0; //! To avoid a position reset, out-comment this one.
 
     std::cerr<<"start."<<std::endl;
 }
@@ -364,7 +359,6 @@ void MainWindow::on_pushButton_resume_pressed()
     pause_resume_init=0;
     std::cerr<<"pause resume."<<std::endl;
 }
-
 
 void MainWindow::on_doubleSpinBox_vm_valueChanged(double arg1)
 {

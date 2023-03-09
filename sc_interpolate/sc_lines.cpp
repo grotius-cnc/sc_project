@@ -13,7 +13,7 @@ V sc_lines::sc_interpolate_lin(sc_pnt p0, sc_pnt p1, T progress, sc_pnt &pi){
 }
 
 V sc_lines::sc_interpolate_dir(sc_dir d0, sc_dir d1, T progress, sc_dir &di){
-   sc_interpolate_lenght(d0.a,d1.a,progress,di.a);
+    sc_interpolate_lenght(d0.a,d1.a,progress,di.a);
     sc_interpolate_lenght(d0.b,d1.b,progress,di.b);
     sc_interpolate_lenght(d0.c,d1.c,progress,di.c);
 }
@@ -25,7 +25,14 @@ V sc_lines::sc_interpolate_ext(sc_ext e0, sc_ext e1, T progress, sc_ext &ei){
 }
 
 V sc_lines::sc_interpolate_lenght(T start, T end, T progress, T &li){
-    li=start+(progress*sc_engine().netto_difference_of_2_values(start,end));
+    if(start<end){
+        li=start+(progress*sc_engine().netto_difference_of_2_values(start,end));
+        return;
+    }
+    if(start>end){
+        li=start-(progress*sc_engine().netto_difference_of_2_values(start,end));
+        return;
+    }
 }
 
 T sc_lines::sc_line_lenght(sc_pnt p0, sc_pnt p1){

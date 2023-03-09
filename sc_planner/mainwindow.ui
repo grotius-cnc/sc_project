@@ -152,24 +152,10 @@ color: rgb(255, 255, 255);
            </property>
           </widget>
          </item>
-         <item row="3" column="2">
-          <widget class="QLabel" name="label_9">
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>%</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QLabel" name="label_performance">
-           <property name="text">
-            <string>0.000</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="label_planner_pos">
-           <property name="text">
-            <string>0.000</string>
+            <string>performance </string>
            </property>
           </widget>
          </item>
@@ -180,45 +166,17 @@ color: rgb(255, 255, 255);
            </property>
           </widget>
          </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>traject progress</string>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="2">
           <widget class="QLabel" name="label_61">
            <property name="text">
             <string>mm/s</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="2">
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>ms</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>progress</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_58">
-           <property name="text">
-            <string>acc</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_55">
-           <property name="text">
-            <string>pos</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="label_planner_vel">
-           <property name="text">
-            <string>0.000</string>
            </property>
           </widget>
          </item>
@@ -229,17 +187,10 @@ color: rgb(255, 255, 255);
            </property>
           </widget>
          </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_57">
+         <item row="4" column="1">
+          <widget class="QLabel" name="label_curve_progress">
            <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QLabel" name="label_62">
-           <property name="text">
-            <string>mm/s^2</string>
+            <string>0-100</string>
            </property>
           </widget>
          </item>
@@ -250,31 +201,87 @@ color: rgb(255, 255, 255);
            </property>
           </widget>
          </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>performance </string>
-           </property>
-          </widget>
-         </item>
          <item row="3" column="1">
-          <widget class="QLabel" name="label_progress">
+          <widget class="QLabel" name="label_traject_progress">
            <property name="text">
             <string>0-100</string>
            </property>
           </widget>
          </item>
          <item row="4" column="0">
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="label_17">
            <property name="text">
-            <string>reverse</string>
+            <string>curve progress</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
-          <widget class="QCheckBox" name="checkBox_motion_reverse">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_55">
            <property name="text">
-            <string/>
+            <string>pos</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLabel" name="label_62">
+           <property name="text">
+            <string>mm/s^2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_58">
+           <property name="text">
+            <string>acc</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_57">
+           <property name="text">
+            <string>mm</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_planner_vel">
+           <property name="text">
+            <string>0.000</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="2">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>ms</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_planner_pos">
+           <property name="text">
+            <string>0.000</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLabel" name="label_performance">
+           <property name="text">
+            <string>0.000</string>
            </property>
           </widget>
          </item>

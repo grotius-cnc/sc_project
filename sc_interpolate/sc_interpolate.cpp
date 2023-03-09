@@ -37,21 +37,49 @@ V sc_interpolate::sc_block::set_ext(sc_ext start, sc_ext end){
     ext_e=end;
 }
 
-V sc_interpolate::interpolate_block(sc_block block,
-                                              T progress,
+V sc_interpolate::interpolate_blockvec(std::vector<sc_block> blockvec,
+                                              T traject_progress,
                                               sc_pnt &pnt,
                                               sc_dir &dir,
-                                              sc_ext &ext){
+                                              sc_ext &ext,
+                                       T &curve_progress){
 
-    if(block.primitive_id==id_line){
-        sc_lines().sc_interpolate_lin(block.pnt_s,block.pnt_e,progress,pnt);
-    }
-    if(block.primitive_id==id_arc){
-        sc_arcs().sc_interpolate_arc(block.pnt_s,block.pnt_w,block.pnt_e,progress,pnt);
+
+    T ltot=0;
+    for(uint i=0; i<blockvec.size(); i++){
+        ltot+=blockvec.at(i).blocklenght();
     }
 
-    sc_lines().sc_interpolate_dir(block.dir_s,block.dir_e,progress,dir);
-    sc_lines().sc_interpolate_ext(block.ext_s,block.ext_e,progress,ext);
+    // Now l=ltot =100%
+    T l=0;
+    for(uint i=0; i<blockvec.size(); i++){
+
+        if(traject_progress>=l/ltot && traject_progress<(l+blockvec.at(i).blocklenght())/ltot){
+
+            T low_pct=l/ltot;                                   //10%
+            T high_pct=(l+blockvec.at(i).blocklenght())/ltot;   //25%
+            T range=high_pct-low_pct;                           //25-10=15%
+            T offset_low=traject_progress-low_pct;              //12-10=2%
+            curve_progress=offset_low/range;
+
+
+            if(blockvec.at(i).primitive_id==id_line){
+                sc_lines().sc_interpolate_lin(blockvec.at(i).pnt_s,blockvec.at(i).pnt_e,curve_progress,pnt);
+            }
+            if(blockvec.at(i).primitive_id==id_arc){
+                sc_arcs().sc_interpolate_arc(blockvec.at(i).pnt_s,blockvec.at(i).pnt_w,blockvec.at(i).pnt_e,curve_progress,pnt);
+            }
+
+            sc_lines().sc_interpolate_dir(blockvec.at(i).dir_s,blockvec.at(i).dir_e,curve_progress,dir);
+            sc_lines().sc_interpolate_ext(blockvec.at(i).ext_s,blockvec.at(i).ext_e,curve_progress,ext);
+        }
+
+        l+=blockvec.at(i).blocklenght();
+
+    }
+
+
+
 }
 
 

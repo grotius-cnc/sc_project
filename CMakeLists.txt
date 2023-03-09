@@ -14,6 +14,6 @@ include_directories("/usr/include/eigen3/Eigen")
 
 add_subdirectory(${SRC_DIR}/sc_engine)
 add_subdirectory(${SRC_DIR}/sc_interpolate)
-add_subdirectory(${SRC_DIR}/sc_primitives_gui)
-add_subdirectory(${SRC_DIR}/sc_curves_gui)
+#add_subdirectory(${SRC_DIR}/sc_primitives_gui)
+#add_subdirectory(${SRC_DIR}/sc_curves_gui)
 add_subdirectory(${SRC_DIR}/sc_planner)
