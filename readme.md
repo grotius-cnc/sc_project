@@ -36,9 +36,11 @@ a c++ sc_engine library
 ## Dependencies
 
 The sc_engine has no dependencies and is written in CXX20.
+
 The sc_planner & sc_interpolation uses Qt & Eigen3. 
 
 Read the comments in the toplevel CMakeLists.txt file how
+
 to install Qt,Eigen3.
 
 ## Deployment
