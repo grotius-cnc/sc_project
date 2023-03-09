@@ -28,6 +28,7 @@ B motion_reverse=0;
 B vm_interupt=0;
 
 T position=0;        //! Overall absolute position.
+T position_interpolation=0;
 T velocity=0;
 T velocity_max=0;
 T acceleration=0;
@@ -204,8 +205,10 @@ void MainWindow::thread(){
 
             if(!motion_reverse){
                 position+=displacement_run-displacement_run_old;
+                position_interpolation+=displacement_run-displacement_run_old;
             } else {
                 position-=displacement_run-displacement_run_old;
+                position_interpolation-=displacement_run-displacement_run_old;
             }
             displacement_run_old=displacement_run;
 
@@ -222,7 +225,7 @@ void MainWindow::thread(){
     }
 
     if(blockvec.size()>0){
-        progress=position/engine->to_stot_pvec(motionvec);
+        progress=position_interpolation/engine->to_stot_pvec(motionvec);
         interpolate->interpolate_block(blockvec.at(motionvec_nr),
                                        progress,xyz,abc,uvw);
     }
@@ -342,7 +345,8 @@ void MainWindow::on_pushButton_start_pressed()
     run=1;
     stop=0;
     run_init=0;
-    // position=0; //! To avoid a position reset, out-comment this one.
+    //! position=0; //! To avoid a position reset, out-comment this one.
+    position_interpolation=0;
 
     std::cerr<<"start."<<std::endl;
 }
