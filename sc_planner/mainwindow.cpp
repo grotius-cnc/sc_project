@@ -176,27 +176,29 @@ void MainWindow::thread(){
                 stop=1;
             }
 
-            motionvec.at(motionvec_nr).ncs=engine->netto_difference_of_2_values(motionvec.at(motionvec_nr).endpos,
-                                                                                motionvec.at(motionvec_nr).startpos);
+            if(!stop){ //! Otherwise progress value at end of motion is overwritten.
+                motionvec.at(motionvec_nr).ncs=engine->netto_difference_of_2_values(motionvec.at(motionvec_nr).endpos,
+                                                                                    motionvec.at(motionvec_nr).startpos);
 
-            sc_engine::sc_period p=motionvec.at(motionvec_nr);
+                sc_engine::sc_period p=motionvec.at(motionvec_nr);
 
-            stored_ace=p.ace;
-            stored_ve=p.ve;
-            stored_startpos=p.startpos;
-            stored_endpos=p.endpos;
+                stored_ace=p.ace;
+                stored_ve=p.ve;
+                stored_startpos=p.startpos;
+                stored_endpos=p.endpos;
 
-            engine->process_curve(p,velocity_max,runvec);
-            if(p.endpos<p.startpos){
-                motion_reverse=1;
-            } else {
-                motion_reverse=0;
+                engine->process_curve(p,velocity_max,runvec);
+                if(p.endpos<p.startpos){
+                    motion_reverse=1;
+                } else {
+                    motion_reverse=0;
+                }
+
+                run_finished=0;
             }
-
-            run_finished=0;
         }
 
-        engine->interpolate_periods(timer_run,runvec,displacement_run,velocity,acceleration,run_finished);
+        engine->interpolate_periods(timer_run, runvec, displacement_run, velocity, acceleration, run_finished);
 
         if(!run_finished){
 
@@ -215,13 +217,14 @@ void MainWindow::thread(){
                 adaptive_feed=0;
             }
 
-            progress=displacement_run/engine->to_stot_pvec(runvec);
-
-            //! Todo interpolate overall, just like timer_run,
-            // blockvec.at(motionvec_nr).interpolate(progress,xyz,abc,uvw);
-
             set_opengl(velocity,position,acceleration);
         }
+    }
+
+    if(blockvec.size()>0){
+        progress=position/engine->to_stot_pvec(motionvec);
+        interpolate->interpolate_block(blockvec.at(motionvec_nr),
+                                       progress,xyz,abc,uvw);
     }
 
     if(stop){
@@ -299,8 +302,8 @@ void MainWindow::on_pushButton_start_pressed()
     T vo=0, ve=0, acs=0, ace=0, ncs=0, nct=0, start=0, end=0;
 
     //! Choose one:
-    B example_0=1;
-    B example_1=0;
+    B example_0=0;
+    B example_1=1;
 
 
     if(example_0){
@@ -312,13 +315,23 @@ void MainWindow::on_pushButton_start_pressed()
         motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,start,end});
     }
 
-    if(example_1){
+    if(example_1){ //! Interpolating a 3d line and a 3d arc motion.
         start=0;
         sc_interpolate::sc_block block;
         block.primitive_id=sc_interpolate::sc_primitive_id::id_line;
-        block.set_pnt({0,0,0},{200,00,0});
+        block.set_pnt({0,0,0},{200,200,10});
+        block.set_dir({0,0,0},{45,90,180});
+        block.set_ext({0,0,0},{10,20,30});
         end=block.blocklenght();
-        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct,start,end});
+        motionvec.push_back({sc_engine::sc_period_id::id_run,vo,5,acs,ace,ncs,nct,start,end});
+        blockvec.push_back(block);
+
+        block.primitive_id=sc_interpolate::sc_primitive_id::id_arc;
+        block.set_pnt({200,200,10} /*arc start*/,{250,250,50} /* arc waypoint*/ ,{300,200,10} /*arc end*/);
+        block.set_dir({45,90,180},{0,0,0});
+        block.set_ext({10,20,30},{0,0,0});
+        end=block.blocklenght();
+        motionvec.push_back({sc_engine::sc_period_id::id_run,5,ve,acs,ace,ncs,nct,start,end});
         blockvec.push_back(block);
     }
 

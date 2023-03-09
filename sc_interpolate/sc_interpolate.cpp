@@ -16,22 +16,6 @@ T sc_interpolate::sc_block::blocklenght(){
     return 0;
 }
 
-V sc_interpolate::sc_block::interpolate(T progress,
-                                        sc_pnt &pnt,
-                                        sc_dir &dir,
-                                        sc_ext &ext){
-
-    if(primitive_id==id_line){
-        sc_lines().sc_interpolate_lin(pnt_s,pnt_e,progress,pnt);
-    }
-    if(primitive_id==id_arc){
-        sc_arcs().sc_interpolate_arc(pnt_s,pnt_w,pnt_e,progress,pnt);
-    }
-
-    sc_lines().sc_interpolate_dir(dir_s,dir_e,progress,dir);
-    sc_lines().sc_interpolate_ext(ext_s,ext_e,progress,ext);
-}
-
 V sc_interpolate::sc_block::set_pnt(sc_pnt start, sc_pnt end){
     pnt_s=start;
     pnt_e=end;
@@ -52,3 +36,40 @@ V sc_interpolate::sc_block::set_ext(sc_ext start, sc_ext end){
     ext_s=start;
     ext_e=end;
 }
+
+V sc_interpolate::interpolate_block(sc_block block,
+                                              T progress,
+                                              sc_pnt &pnt,
+                                              sc_dir &dir,
+                                              sc_ext &ext){
+
+    if(block.primitive_id==id_line){
+        sc_lines().sc_interpolate_lin(block.pnt_s,block.pnt_e,progress,pnt);
+    }
+    if(block.primitive_id==id_arc){
+        sc_arcs().sc_interpolate_arc(block.pnt_s,block.pnt_w,block.pnt_e,progress,pnt);
+    }
+
+    sc_lines().sc_interpolate_dir(block.dir_s,block.dir_e,progress,dir);
+    sc_lines().sc_interpolate_ext(block.ext_s,block.ext_e,progress,ext);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

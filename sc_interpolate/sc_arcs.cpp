@@ -90,8 +90,6 @@ void sc_arcs::sc_interpolate_arc(sc_pnt p0_,
 
     //!         Point to rotate.             Arc center             Point on arc center line. (Arc center + Axis vector)
     pi=sc_rotate_point_around_line({p1.x(),p1.y(),p1.z()},progress*angle,{pc.x(),pc.y(),pc.z()},{pc.x()+an.x(),pc.y()+an.y(),pc.z()+an.z()});
-
-    std::cout<<"pi.x:"<<pi.x<<std::endl;
 }
 
 T sc_arcs::sc_arc_lenght(sc_pnt p0,

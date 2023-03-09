@@ -13,6 +13,8 @@ class sc_interpolate
 public:
     sc_interpolate();
 
+
+
     enum sc_primitive_id {
         id_line,
         id_arc,
@@ -29,16 +31,17 @@ public:
 
         T blocklenght();
 
-        V interpolate(T progress, //! 0-1
-                      sc_pnt &pnt,
-                      sc_dir &dir,
-                      sc_ext &ext);
-
-    private:
         sc_pnt pnt_s, pnt_e, pnt_w;
         sc_dir dir_s, dir_e;
         sc_ext ext_s, ext_e;
     };
+
+
+    V interpolate_block(sc_block block,
+                  T progress, //! 0-1
+                  sc_pnt &pnt,
+                  sc_dir &dir,
+                  sc_ext &ext);
 };
 
 #endif

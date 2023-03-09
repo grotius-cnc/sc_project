@@ -86,7 +86,8 @@ public:
                              std::vector<sc_period> pvec,
                              T &pos,
                              T &vel,
-                             T &acc, bool &finished);
+                             T &acc,
+                             bool &finished);
 
     T as=0;
     T a=0;

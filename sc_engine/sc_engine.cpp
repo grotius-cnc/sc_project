@@ -649,11 +649,9 @@ void sc_engine::interpolate_periods(T at_time,
     T s=0;
 
     if(at_time>to_ttot_pvec(pvec)){
-        //! std::cout<<"finished"<<std::endl;
         finished=true;
-        return;
+        at_time=to_ttot_pvec(pvec);
     }
-
 
     for(uint i=0; i<pvec.size(); i++){
 
