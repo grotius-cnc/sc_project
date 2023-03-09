@@ -3,7 +3,7 @@
 
 a c++ sc_engine library
 
-![App Screenshot](https://github.com/grotius-cnc/sc_project/blob/main/sc_documents/profile.jpg?raw=true)
+![App Screenshot](https://github.com/grotius-cnc/sc_project/blob/main/sc_documents/sc_documents/profile.jpg)
 
 ## Features
 
