@@ -7,25 +7,30 @@ a c++ sc_engine library
 
 ## Features
 
+sc_engine:
 - scurvature motion profiles.
 - constant jerk.
 - using periods t1,t2,t3,t4,t5,t6,t7.
 - realtime performance ~0.02, ~0.06 ms cycle.
+
+sc_planner:
+- start, stop, pause, pause-resume.
 - waypoints.
 - acceleration start, end values.
 - "vm" velocity max interupts.
-- motion planner, sc_planner.
 - 9 axis 3d interpolation for line and arc.
 
 ## Optimizations
 
-- Using inline
-- No std::cout in time critical area's
+sc_engine:
+- Using inline.
+- No std::cout in time critical area's.
+sc_planner:
+- state machine.
 
 ## Todo
 
-- Look ahead.
-- Get the desired corner speeds when ve>0.
+- Look ahead to get the desired corner speeds when ve>0.
 
 ## Documentation
 

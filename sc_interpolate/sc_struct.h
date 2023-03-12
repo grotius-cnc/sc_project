@@ -35,6 +35,11 @@ struct sc_ext {
     T u=0, v=0, w=0;
 };
 
+enum sc_primitive_id {
+    sc_line,
+    sc_arc,
+};
+
 #endif
 
 

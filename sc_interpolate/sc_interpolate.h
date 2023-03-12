@@ -4,7 +4,8 @@
 //! Author  : SKynet Cyberdyne
 //! Licence : MIT
 //! Date    : 2023
-//!
+
+#include "sc_struct.h"
 #include "sc_lines.h"
 #include "sc_arcs.h"
 
@@ -13,16 +14,9 @@ class sc_interpolate
 public:
     sc_interpolate();
 
-
-
-    enum sc_primitive_id {
-        id_line,
-        id_arc,
-    };
-
     struct sc_block {
     public:
-        sc_primitive_id primitive_id=id_line;
+        sc_primitive_id primitive_id=sc_line;
 
         V set_pnt(sc_pnt start, sc_pnt end);
         V set_pnt(sc_pnt start, sc_pnt way, sc_pnt end);

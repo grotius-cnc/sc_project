@@ -1,6 +1,6 @@
 ﻿#include "sc_engine.h"
 
-inline int sc_engine::t1(T vo, T acs, T ace, sc_period &p){
+inline I sc_engine::t1(T vo, T acs, T ace, sc_period &p){
 
     acs=std::abs(acs);
     ace=std::abs(ace);
@@ -23,7 +23,7 @@ inline int sc_engine::t1(T vo, T acs, T ace, sc_period &p){
     return 1;
 }
 
-inline int sc_engine::t1_ve(T vo, T ve, T acs, sc_period &p){
+inline I sc_engine::t1_ve(T vo, T ve, T acs, sc_period &p){
 
     acs=std::abs(acs);
     acs=std::min(acs,as);
@@ -48,7 +48,7 @@ inline int sc_engine::t1_ve(T vo, T ve, T acs, sc_period &p){
     return 1;
 }
 
-inline int sc_engine::t1_i(sc_period p, T ti, T &vi, T &si, T &ai){
+inline I sc_engine::t1_i(sc_period p, T ti, T &vi, T &si, T &ai){
 
     T ts=p.acs/jm;
     T vf=p.vo-(jm*(ts*ts)/2);
@@ -64,7 +64,7 @@ inline int sc_engine::t1_i(sc_period p, T ti, T &vi, T &si, T &ai){
     return 1;
 }
 
-inline int sc_engine::t2(T vo, T ve, T a, sc_period &p){
+inline I sc_engine::t2(T vo, T ve, T a, sc_period &p){
 
     T ncs=((ve*ve) - (vo*vo))/(2*a) ;
     T nct=(ve-vo)/a;
@@ -74,7 +74,7 @@ inline int sc_engine::t2(T vo, T ve, T a, sc_period &p){
     return 1;
 }
 
-inline int sc_engine::t2_i(sc_period p, T ti, T &vi, T &si, T &ai){
+inline I sc_engine::t2_i(sc_period p, T ti, T &vi, T &si, T &ai){
 
     vi=p.vo + p.acs*ti;
     si=p.vo*ti + 0.5*p.acs*(ti*ti);
@@ -83,7 +83,7 @@ inline int sc_engine::t2_i(sc_period p, T ti, T &vi, T &si, T &ai){
     return 1;
 }
 
-inline int sc_engine::t3(T vo, T acs, T ace, sc_period &p){
+inline I sc_engine::t3(T vo, T acs, T ace, sc_period &p){
 
     acs=std::abs(acs);
     ace=std::abs(ace);
@@ -106,7 +106,7 @@ inline int sc_engine::t3(T vo, T acs, T ace, sc_period &p){
     return 2;
 }
 
-inline int sc_engine::t3_i(sc_period p, T ti, T &vi, T &si, T &ai){
+inline I sc_engine::t3_i(sc_period p, T ti, T &vi, T &si, T &ai){
 
     T ts=(as-p.acs)/jm;
     T t=ts;
@@ -125,7 +125,7 @@ inline int sc_engine::t3_i(sc_period p, T ti, T &vi, T &si, T &ai){
     return 1;
 }
 
-inline int sc_engine::t4(T vo, T s, sc_period &p){
+inline I sc_engine::t4(T vo, T s, sc_period &p){
     T nct=s/vo;
     T ncs=s;
 
@@ -134,7 +134,7 @@ inline int sc_engine::t4(T vo, T s, sc_period &p){
     return 1;
 }
 
-inline int sc_engine::t4_i(sc_period p, T ti, T &vi, T &si, T &ai){
+inline I sc_engine::t4_i(sc_period p, T ti, T &vi, T &si, T &ai){
 
     vi=p.vo;
     si=p.vo*ti;
@@ -143,7 +143,7 @@ inline int sc_engine::t4_i(sc_period p, T ti, T &vi, T &si, T &ai){
     return 1;
 }
 
-inline int sc_engine::t5(T vo, T acs, T ace, sc_period &p){
+inline I sc_engine::t5(T vo, T acs, T ace, sc_period &p){
 
     acs=std::abs(acs);
     ace=std::abs(ace);
@@ -167,7 +167,7 @@ inline int sc_engine::t5(T vo, T acs, T ace, sc_period &p){
     return 1;
 }
 
-inline int sc_engine::t5_ve(T vo, T ve, T acs, sc_period &p){
+inline I sc_engine::t5_ve(T vo, T ve, T acs, sc_period &p){
 
     acs=std::abs(acs);
     acs=std::min(acs,as);
@@ -190,7 +190,7 @@ inline int sc_engine::t5_ve(T vo, T ve, T acs, sc_period &p){
     return 1;
 }
 
-inline int sc_engine::t5_i(sc_period p, T ti, T &vi, T &si, T &ai){
+inline I sc_engine::t5_i(sc_period p, T ti, T &vi, T &si, T &ai){
 
     p.acs=std::abs(p.acs);
 
@@ -211,7 +211,7 @@ inline int sc_engine::t5_i(sc_period p, T ti, T &vi, T &si, T &ai){
     return 1;
 }
 
-inline int sc_engine::t6(T vo, T ve, T a, sc_period &p){
+inline I sc_engine::t6(T vo, T ve, T a, sc_period &p){
 
     a=std::abs(a);
     T ncs=((vo*vo) - (ve*ve))/(2*a);
@@ -222,7 +222,7 @@ inline int sc_engine::t6(T vo, T ve, T a, sc_period &p){
     return 1;
 }
 
-inline int sc_engine::t6_i(sc_period p, T ti, T &vi, T &si, T &ai){
+inline I sc_engine::t6_i(sc_period p, T ti, T &vi, T &si, T &ai){
 
     T t=0;
     p.acs=std::abs(p.acs);
@@ -235,7 +235,7 @@ inline int sc_engine::t6_i(sc_period p, T ti, T &vi, T &si, T &ai){
     return 1;
 }
 
-inline int sc_engine::t7(T vo, T acs, T ace, sc_period &p){
+inline I sc_engine::t7(T vo, T acs, T ace, sc_period &p){
 
     acs=std::abs(acs);
     ace=std::abs(ace);
@@ -258,7 +258,7 @@ inline int sc_engine::t7(T vo, T acs, T ace, sc_period &p){
     return 1;
 }
 
-inline int sc_engine::t7_i(sc_period p, T ti, T &vi, T &si, T &ai){
+inline I sc_engine::t7_i(sc_period p, T ti, T &vi, T &si, T &ai){
 
     p.acs=std::abs(p.acs);
 
@@ -279,7 +279,7 @@ inline int sc_engine::t7_i(sc_period p, T ti, T &vi, T &si, T &ai){
     return 1;
 }
 
-inline int sc_engine::t1_t2_t3(sc_period p, std::vector<sc_period> &pvec){
+inline I sc_engine::t1_t2_t3(sc_period p, std::vector<sc_period> &pvec){
 
     sc_period p1,p2,p3;
     T delta_v=0;
@@ -317,7 +317,7 @@ inline int sc_engine::t1_t2_t3(sc_period p, std::vector<sc_period> &pvec){
     return 0;
 }
 
-inline int sc_engine::t7_t1_t2_t3_t5(sc_period p, std::vector<sc_period> &pvec){
+inline I sc_engine::t7_t1_t2_t3_t5(sc_period p, std::vector<sc_period> &pvec){
 
     sc_period p7,p1,p2,p3,p5;
     T delta_v=0;
@@ -389,7 +389,7 @@ inline int sc_engine::t7_t1_t2_t3_t5(sc_period p, std::vector<sc_period> &pvec){
     return 0;
 }
 
-inline int sc_engine::t5_t6_t7(sc_period p, std::vector<sc_period> &pvec){
+inline I sc_engine::t5_t6_t7(sc_period p, std::vector<sc_period> &pvec){
 
     sc_period p5,p6,p7;
     T delta_v=0;
@@ -426,7 +426,7 @@ inline int sc_engine::t5_t6_t7(sc_period p, std::vector<sc_period> &pvec){
     return 1;
 }
 
-inline int sc_engine::t4_acs(sc_period p, std::vector<sc_period> &pvec){
+inline I sc_engine::t4_acs(sc_period p, std::vector<sc_period> &pvec){
 
     sc_period p1,p3,p4,p5,p7;
     if(p.acs>0){
@@ -469,7 +469,7 @@ inline int sc_engine::t4_acs(sc_period p, std::vector<sc_period> &pvec){
     return 0;
 }
 
-inline int sc_engine::t4_ace(sc_period p, std::vector<sc_period> &pvec){
+inline I sc_engine::t4_ace(sc_period p, std::vector<sc_period> &pvec){
 
     sc_period p1,p3,p4,p5,p7;
     if(p.ace>0){
@@ -518,7 +518,7 @@ inline int sc_engine::t4_ace(sc_period p, std::vector<sc_period> &pvec){
     return 0;
 }
 
-inline int sc_engine::t3_t5_t6_t7_t1(sc_period p, std::vector<sc_period> &pvec){
+inline I sc_engine::t3_t5_t6_t7_t1(sc_period p, std::vector<sc_period> &pvec){
 
     sc_period p3,p5,p6,p7,p1;
     T delta_v=0;
@@ -599,7 +599,7 @@ inline T sc_engine::to_vh_dcc(T vo, T ve){
     return vo-((vo-ve)/2);
 }
 
-void sc_engine::sc_set_a_dv(T theA, T theDv){
+V sc_engine::sc_set_a_dv(T theA, T theDv){
 
     a=theA;
     T dv=theDv;
@@ -608,11 +608,11 @@ void sc_engine::sc_set_a_dv(T theA, T theDv){
     jm=2*as/ct;
 }
 
-void sc_engine::interpolate_period(T at_time,
-                                   sc_period p,
-                                   T &pos,
-                                   T &vel,
-                                   T &acc){
+V sc_engine::interpolate_period(T at_time,
+                                sc_period p,
+                                T &pos,
+                                T &vel,
+                                T &acc){
 
     if(p.id==sc_period_id::id_t1){
         t1_i(p,at_time,vel,pos,acc);
@@ -639,12 +639,12 @@ void sc_engine::interpolate_period(T at_time,
 
 
 
-void sc_engine::interpolate_periods(T at_time,
-                                    std::vector<sc_period> pvec,
-                                    T &pos,
-                                    T &vel,
-                                    T &acc,
-                                    bool &finished){
+V sc_engine::interpolate_periods(T at_time,
+                                 std::vector<sc_period> pvec,
+                                 T &pos,
+                                 T &vel,
+                                 T &acc,
+                                 bool &finished){
     T t=0;
     T s=0;
 
@@ -667,7 +667,19 @@ void sc_engine::interpolate_periods(T at_time,
     }
 }
 
-int sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
+B sc_engine::process_curve(sc_period_id id,
+                           T vo,
+                           T ve,
+                           T acs,
+                           T ace,
+                           T ncs,
+                           T vm,
+                           std::vector<sc_period> &pvec){
+
+    return process_curve({ id, vo, ve, acs, ace, ncs }, vm, pvec);
+}
+
+B sc_engine::process_curve(sc_period p, T vm, std::vector<sc_period> &pvec){
 
     p.ncs=std::abs(p.ncs); //! Ensure positive input.
 

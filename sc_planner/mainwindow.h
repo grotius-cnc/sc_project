@@ -5,8 +5,7 @@
 #include <iostream>
 #include <chrono>
 #include <opengl.h>
-#include <../sc_engine/sc_engine.h>
-#include <../sc_interpolate/sc_interpolate.h>
+#include <../sc_planner/sc_planner.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,7 +22,7 @@ public:
 private slots:
     void thread();
 
-    void on_pushButton_start_pressed();
+    void on_pushButton_run_pressed();
 
     void on_pushButton_pause_pressed();
 
@@ -39,21 +38,15 @@ private slots:
 
     void on_doubleSpinBox_adaptive_feed_valueChanged(double arg1);
 
-    void on_pushButton_released();
-
-    void on_pushButton_test_pressed();
+    void on_pushButton_pressed();
 
 private:
     Ui::MainWindow *ui;
     QTimer *timer;
     opengl *myOpenGl;
+    B resume_orange=0; UI blink_delay=0;
 
-    sc_engine *engine = new sc_engine();
-    sc_interpolate *interpolate= new sc_interpolate();
-    std::vector<sc_interpolate::sc_block> blockvec; //! The gcode coordinates.
-    sc_pnt xyz; //! Interpolation results.
-    sc_dir abc;
-    sc_ext uvw;
+    sc_planner *planner=new sc_planner();
 
     QString original="background-color: rgb(51, 57, 59);\ncolor: rgb(255, 255, 255);\n";
     QString orange="background-color: rgb(170, 85, 0);\ncolor: rgb(255, 255, 255);\n";

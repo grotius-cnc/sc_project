@@ -8,6 +8,8 @@ set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Set path to your qt dir.
+
+# For a qt install, you could do $ sudo apt-get install qtcreator
 set(CMAKE_PREFIX_PATH "/opt/qt-creator/5.15.1/gcc_64/lib/cmake/Qt5")
 # Set path to eigen3, for install $ sudo apt-get install libeigen3-dev
 include_directories("/usr/include/eigen3/Eigen")

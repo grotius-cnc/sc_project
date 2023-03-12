@@ -34,6 +34,8 @@ set(PROJECT_SOURCES
         mainwindow.ui
         opengl.h
         opengl.cpp
+        sc_planner.h
+        sc_planner.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

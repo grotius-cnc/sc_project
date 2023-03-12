@@ -7,10 +7,10 @@ sc_interpolate::sc_interpolate()
 
 T sc_interpolate::sc_block::blocklenght(){
 
-    if(primitive_id==id_line){
+    if(primitive_id==sc_line){
         return sc_lines().sc_line_lenght(pnt_s,pnt_e);
     }
-    if(primitive_id==id_arc){
+    if(primitive_id==sc_arc){
         return sc_arcs().sc_arc_lenght(pnt_s,pnt_w,pnt_e);
     }
     return 0;
@@ -44,13 +44,11 @@ V sc_interpolate::interpolate_blockvec(std::vector<sc_block> blockvec,
                                               sc_ext &ext,
                                        T &curve_progress){
 
-
     T ltot=0;
     for(uint i=0; i<blockvec.size(); i++){
         ltot+=blockvec.at(i).blocklenght();
     }
 
-    // Now l=ltot =100%
     T l=0;
     for(uint i=0; i<blockvec.size(); i++){
 
@@ -62,11 +60,10 @@ V sc_interpolate::interpolate_blockvec(std::vector<sc_block> blockvec,
             T offset_low=traject_progress-low_pct;              //12-10=2%
             curve_progress=offset_low/range;
 
-
-            if(blockvec.at(i).primitive_id==id_line){
+            if(blockvec.at(i).primitive_id==sc_line){
                 sc_lines().sc_interpolate_lin(blockvec.at(i).pnt_s,blockvec.at(i).pnt_e,curve_progress,pnt);
             }
-            if(blockvec.at(i).primitive_id==id_arc){
+            if(blockvec.at(i).primitive_id==sc_arc){
                 sc_arcs().sc_interpolate_arc(blockvec.at(i).pnt_s,blockvec.at(i).pnt_w,blockvec.at(i).pnt_e,curve_progress,pnt);
             }
 
@@ -75,11 +72,7 @@ V sc_interpolate::interpolate_blockvec(std::vector<sc_block> blockvec,
         }
 
         l+=blockvec.at(i).blocklenght();
-
     }
-
-
-
 }
 
 
