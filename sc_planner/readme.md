@@ -14,7 +14,7 @@ To add waypoints to the planner :
 	
 	//! Add motion up to 9 axis.
 	planner->sc_add_general_motion(
-									T vo,
+					T vo,
                             		T ve,
                             		T acs,
                             		T ace,
