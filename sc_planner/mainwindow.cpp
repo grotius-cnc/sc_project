@@ -1,12 +1,10 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
-//! If user reqeust a pause, motion will do a controlled stop. For now test on the steady stage.
-//! A pause resume will go back to pause interupt position, then will continue path.
-
 //! Gui items.
 std::vector<double> vvec,svec,avec;
-int gui_delay=0; //! To keep a good gui performance using opengl.
+//! To keep a good gui performance using opengl.
+int gui_delay=0;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -74,11 +72,8 @@ void MainWindow::thread(){
 
     set_opengl(velocity,position,acceleration);
 
-
     gui_delay++;
     if(gui_delay>20){
-
-
 
         ui->label_planner_pos->setText(QString::number(position,'f',3));
         ui->label_planner_vel->setText(QString::number(velocity,'f',3));
@@ -149,7 +144,6 @@ void MainWindow::thread(){
             ui->pushButton_resume->setStyleSheet(original);
         }
 
-
         ui->label_program_status_string->setText(QString::fromStdString(planner->sc_get_program_state()));
 
         ui->label_performance->setText(QString::number(planner->sc_performance(),'f',6));
@@ -168,13 +162,18 @@ void MainWindow::on_pushButton_run_pressed()
         T vo=0, ve=0, acs=0, ace=0;
 
         planner->sc_clear();
-        vo=0, ve=5;
-        planner->sc_add_line_motion(vo,ve,acs,ace,{0,0,0},{100,0,0});
+        vo=0, ve=0;
+        planner->sc_add_line_motion(vo,ve,acs,ace,{0,0,0},{0,100,0});
 
-        vo=ve; ve=0;
-        planner->sc_add_line_motion(vo,ve,acs,ace,{100,0,0},{200,0,0});
-        vo=ve; ve=0;
-        planner->sc_add_line_motion(vo,ve,acs,ace,{200,0,0},{250,250,250});
+        vo=0; ve=0;
+        planner->sc_add_line_motion(vo,ve,acs,ace,{0,100,0},{100,100,0});
+
+        vo=0; ve=0;
+        planner->sc_add_line_motion(vo,ve,acs,ace,{100,100,0},{100,0,0});
+
+        vo=0; ve=0;
+        planner->sc_add_line_motion(vo,ve,acs,ace,{100,0,0},{0,0,0});
+
 
         planner->sc_set_startline(ui->spinBox_start_line->value());
         planner->sc_set_state(sc_planner::sc_enum_program_status::program_run);
@@ -212,12 +211,6 @@ void MainWindow::on_pushButton_pressed()
 {
     planner->sc_set_position(ui->lineEdit_set_position->text().toDouble());
 }
-
-
-
-
-
-
 
 
 

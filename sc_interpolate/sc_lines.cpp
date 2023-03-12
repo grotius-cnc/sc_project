@@ -33,6 +33,9 @@ V sc_lines::sc_interpolate_lenght(T start, T end, T progress, T &li){
         li=start-(progress*sc_engine().netto_difference_of_2_values(start,end));
         return;
     }
+    if(start==end){
+        li=end;
+    }
 }
 
 T sc_lines::sc_line_lenght(sc_pnt p0, sc_pnt p1){
