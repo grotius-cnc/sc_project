@@ -15,10 +15,11 @@ sc_engine:
 
 sc_planner:
 - start, stop, pause, pause-resume.
+- adaptive-feed.
 - waypoints.
 - acceleration start, end values.
 - "vm" velocity max interupts.
-- 9 axis 3d interpolation for line and arc.
+- interpolation of waypoints.
 
 ## Optimizations
 
@@ -30,6 +31,8 @@ sc_planner:
 
 ## Todo
 
+sc_planner:
+- Program step.
 - Look ahead to get the desired corner speeds when ve>0.
 
 ## Documentation
