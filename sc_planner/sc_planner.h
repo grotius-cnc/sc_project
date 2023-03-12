@@ -106,16 +106,30 @@ public:
                         sc_pnt way,
                         sc_pnt end);
 
+    //! Add motion up to 9 axis.
+    V sc_add_general_motion(T vo,
+                            T ve,
+                            T acs,
+                            T ace,
+                            sc_primitive_id id,
+                            sc_pnt start,
+                            sc_pnt way,
+                            sc_pnt end,
+                            sc_dir dir_start,
+                            sc_dir dir_end,
+                            sc_ext ext_start,
+                            sc_ext ext_end);
+
     //! Attached to thread.
     V sc_update();
 
     V sc_get_planner_results(T &position,
-                     T &velocity,
-                     T &acceleration,
-                     UI &line_nr,
-                     T &line_progress,
-                     T &traject_progress,
-                     B &finished);
+                             T &velocity,
+                             T &acceleration,
+                             UI &line_nr,
+                             T &line_progress,
+                             T &traject_progress,
+                             B &finished);
 
     V sc_get_interpolation_results(
             sc_pnt &xyz,

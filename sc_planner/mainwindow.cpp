@@ -170,6 +170,7 @@ void MainWindow::on_pushButton_run_pressed()
         planner->sc_clear();
         vo=0, ve=5;
         planner->sc_add_line_motion(vo,ve,acs,ace,{0,0,0},{100,0,0});
+
         vo=ve; ve=0;
         planner->sc_add_line_motion(vo,ve,acs,ace,{100,0,0},{200,0,0});
         vo=ve; ve=0;

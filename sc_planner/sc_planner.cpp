@@ -75,6 +75,33 @@ V sc_planner::sc_add_arc_motion(T vo, T ve, T acs, T ace, sc_pnt start, sc_pnt w
     motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
 }
 
+V sc_planner::sc_add_general_motion(T vo,
+                                    T ve,
+                                    T acs,
+                                    T ace,
+                                    sc_primitive_id id,
+                                    sc_pnt start,
+                                    sc_pnt way,
+                                    sc_pnt end,
+                                    sc_dir dir_start,
+                                    sc_dir dir_end,
+                                    sc_ext ext_start,
+                                    sc_ext ext_end){
+
+    T ncs=0, nct=0;
+
+    sc_interpolate::sc_block b;
+    b.primitive_id=id;
+    b.set_pnt(start,way,end);
+    b.set_dir(dir_start,dir_end);
+    b.set_ext(ext_start,ext_end);
+    ncs=b.blocklenght();
+    blockvec.push_back(b);
+
+    motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
+
+}
+
 B sc_planner::sc_set_traject_stot(){
 
     sc_stot=0;
@@ -479,7 +506,6 @@ V sc_planner::sc_get_planner_results(T &position,
 
 V sc_planner::sc_get_interpolation_results(sc_pnt &xyz, sc_dir &abc, sc_ext &uvw, T &curve_progress){
     T traject_progress=sc_pos/sc_stot;
-    std::cout<<"blockvec size:"<<blockvec.size()<<std::endl;
     interpolate->interpolate_blockvec(blockvec,
                                       traject_progress,
                                       xyz,abc,uvw,curve_progress);
