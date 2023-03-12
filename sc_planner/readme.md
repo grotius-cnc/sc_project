@@ -13,7 +13,8 @@ To add waypoints to the planner :
  	planner->sc_add_arc_motion(vo,ve,acs,ace,{0,0,0},{50,50,0},{100,0,0});
 	
 	//! Add motion up to 9 axis.
-	planner->sc_add_general_motion(	T vo,
+	planner->sc_add_general_motion(
+									T vo,
                             		T ve,
                             		T acs,
                             		T ace,
@@ -24,7 +25,8 @@ To add waypoints to the planner :
                             		sc_dir dir_start,
                             		sc_dir dir_end,
                             		sc_ext ext_start,
-                            		sc_ext ext_end);
+                            		sc_ext ext_end
+                            		);
 
 	//! Run from first program line.
  	planner->sc_set_startline(0);
