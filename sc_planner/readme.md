@@ -1,10 +1,6 @@
 
 # sc_planner
 
-
-![App Screenshot](https://github.com/grotius-cnc/sc_project/blob/main/sc_planner/screen.jpg?raw=true)
-
-
 To add waypoints to the planner :
 
 	//! Clear previous waypoints.
@@ -38,7 +34,7 @@ To add waypoints to the planner :
 
 Full example :
 
-	https://github.com/grotius-cnc/sc_project/blob/main/sc_planner/mainwindow.cpp
+https://github.com/grotius-cnc/sc_project/blob/main/sc_planner/mainwindow.cpp
 
 ![App Screenshot](https://github.com/grotius-cnc/sc_project/blob/main/sc_planner/screen.jpg?raw=true)
 
