@@ -1,6 +1,11 @@
 # sc_optimizer_gui
 
-gui application to test the sc_optimizer library.
+Gui application to test the sc_optimizer library.
+
+Has a gforce calculater to give the user a impression of gforce impact using
+different arc's and speeds.
+
+![App Screenshot](https://github.com/grotius-cnc/sc_project/blob/main/sc_optimizer_gui/screen.jpg)
 
 ## Features
 

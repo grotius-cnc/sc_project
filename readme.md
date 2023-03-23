@@ -11,13 +11,34 @@ sc_engine:
 - using periods t1,t2,t3,t4,t5,t6,t7.
 - realtime performance ~0.02, ~0.06 ms cycle.
 
-sc_planner:
+sc_planner, sc_planner_gui:
 - start, stop, pause, pause-resume.
 - adaptive-feed.
 - waypoints.
 - acceleration start, end values.
 - "vm" velocity max interupts.
 - interpolation of waypoints.
+
+sc_optimizer, sc_optimizer_gui:
+- reduces corner speeds.
+- reduces gforce for arc's.
+- set's velocity transitions.
+- calculate gforce.
+
+sc_pid, sc_pid_gui:
+- stand alone motion follower.
+
+sc_interpolate:
+- 9 axis interpolation module. 
+
+sc_primitives, sc_primitives_gui:
+- Example how curvatures work in this library.
+
+sc_curves_gui:
+- Example to construct one motion. vo->vm->ve.
+
+sc_common:
+- Basic's to use in the sc_project.
 
 ## Optimizations
 
@@ -29,9 +50,7 @@ sc_planner:
 
 ## Todo
 
-sc_planner:
-- Program step.
-- Look ahead to get the desired corner speeds when ve>0.
+[Todo file](https://github.com/grotius-cnc/sc_project/tree/main/todo.txt)
 
 ## Documentation
 
@@ -41,13 +60,11 @@ sc_planner:
 
 ## Dependencies
 
-The sc_engine has no dependencies and is written in CXX20.
+The sc_engine has no dependencies and is written in c++20.
 
-The sc_planner & sc_interpolation uses Qt & Eigen3. 
+Gui apps depends on Qt.
 
-Read the comments in the toplevel CMakeLists.txt file how
-
-to install Qt,Eigen3.
+Some classes depends on Eigen3. 
 
 ## Deployment
 

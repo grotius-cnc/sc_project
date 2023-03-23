@@ -1,0 +1,4 @@
+1.	pvec.front().vo value is not always showing up, fix the sc_engine to do this.
+	This is already fixed for pvec.back().ve
+
+2.  For user to define a nice gforce value for arc's we need a gforce gui calculator.

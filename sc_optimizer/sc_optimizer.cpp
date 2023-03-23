@@ -5,38 +5,34 @@ sc_optimizer::sc_optimizer( )
 
 }
 
-std::vector<sc_block> sc_optimizer::sc_optimize_path(
-        std::vector<sc_block> blockvec,
-        T velmax,
-        T gforcemax, T a, T dv){
-
+V sc_optimizer::sc_set_a_dv_gforce_velmax(T acceleration, T delta_v, T gforce_max, T velocity_max){
+    a=acceleration;
+    dv=delta_v;
+    gforcemax=gforce_max;
+    vm=velocity_max;
     engine->sc_set_a_dv(a,dv);
+}
 
-    //! 1.Calculate motion block corners.
+std::vector<sc_block> sc_optimizer::sc_optimize_block_angles_ve(std::vector<sc_block> blockvec){
+
+    //! Calculate motion block corners.
     blockvec=sc_get_blockangles(blockvec);
 
-    //! 2.Set end velocity, based on block corners, if no angle, ve is set to vm at this stage.
-    blockvec=sc_get_corner_ve_blockangles(blockvec,velmax);
-
-    //! 3.Set the velmax for arc's using gforce value. Set the velmax for lines to program velmax.
-    blockvec=sc_get_velmax_gforce(blockvec,velmax,gforcemax);
-
-    //! 4. Check if motion is G0, or one of G1,G2,G3. If G0, ve=0, else use end ve.
-    //blockvec=sc_process_forward_ve(blockvec);
-
-    //! 5. Iterate back over gcode, to check if ve's can be realized given short blocklenghts.
-
+    //! Set end velocity, based on block corners, if no angle, ve is set to vm at this stage.
+    blockvec=sc_get_corner_ve_blockangles(blockvec,vm);
 
     return blockvec;
 }
 
-std::vector<sc_block> sc_optimizer::sc_process_forward_ve(std::vector<sc_block> blockvec){
+std::vector<sc_block> sc_optimizer::sc_optimize_gforce_arcs(std::vector<sc_block> blockvec){
+    //! Set the velmax for arc's using gforce value. Set the velmax for lines to program velmax.
+    blockvec=sc_get_velmax_gforce(blockvec,vm,gforcemax);
 
+    return blockvec;
+}
 
-    T vo=0, ve=0, vm=0, acs=0, ace=0, ncs=0;
-    std::vector<sc_engine::sc_period> pvec;
+std::vector<sc_block> sc_optimizer::sc_optimize_G0_ve(std::vector<sc_block> blockvec){
 
-    T curvel=0;
     for(UI i=0; i<blockvec.size(); i++){
 
         if(blockvec.at(i).type==sc_G0){ //! End velocity=0 if motion is G0, rapid.
@@ -47,31 +43,125 @@ std::vector<sc_block> sc_optimizer::sc_process_forward_ve(std::vector<sc_block> 
             if(i<blockvec.size()-1){
                 blockvec.at(i+1).vo=0;
             }
+        }
+    }
+    return blockvec;
+}
 
-            curvel=0;
+std::vector<sc_block> sc_optimizer::sc_optimize_G123_ve_forward(std::vector<sc_block> blockvec){
 
-        } else { //! Of type G1,G2,G3.
+    T  vo=0, ve=0, vm=0, acs=0, ace=0, s=0, pvec_s=0, pvec_ve=0;
+
+    for(UI i=0; i<blockvec.size(); i++){
+
+        if(blockvec.at(i).type==sc_G0){
+
+        }
+
+        if(blockvec.at(i).type==sc_G1 || blockvec.at(i).type==sc_G2 || blockvec.at(i).type==sc_G3){ //! End velocity=0 if motion is G0, rapid.
 
             acs=0, ace=0; //! To keep it simple, can be used later on to improve this library.
-            vo=curvel;
-            blockvec.at(i).vo=curvel;
-            ncs=blockvec.at(i).blocklenght();
 
-            //! This velmax has already a reduced vm for arc gforce.
-            vm=blockvec.at(i).velmax;
-
-            //! The ve is already reduced for corner transitions. If no corner, ve is set to vm by previous function.
+            vo=blockvec.at(i).vo;
             ve=blockvec.at(i).ve;
+            vm=blockvec.at(i).velmax;
+            s=blockvec.at(i).blocklenght();
 
-            //! Sample the ve down until it fits displacement ncs.
-            for(UI i=ve; ve>0; ve-=0.1*vm){
+            //! Check if vo to ve fits s.
+            std::vector<sc_engine::sc_period> pvec;
+            engine->process_curve(sc_engine::id_run, vo, ve, acs, ace, s, vm, pvec);
 
-                engine->process_curve(sc_engine::id_run,vo,i /*ve*/,acs,ace,ncs,vm,pvec);
+            pvec_s=engine->to_stot_pvec(pvec);
+            pvec_ve=pvec.back().ve;
 
-                if(engine->to_stot_pvec(pvec)==ncs){
-                    blockvec.at(i).ve=i; //! Set the end velocity.
-                    curvel=i; //! Update for next iteration.
-                    break;
+            if(pvec_s==s){
+                //! Current given ve is ok, do nothing.
+            } else {
+
+                for(T j=ve; j>=0; j-=0.1*ve){ //! Sample down ve until pvec_s=s
+                    std::vector<sc_engine::sc_period> pvec;
+                    engine->process_curve(sc_engine::id_run,
+                                          vo,
+                                          j /*sampled ve*/,
+                                          acs,
+                                          ace,
+                                          s,
+                                          vm,
+                                          pvec);
+
+                    pvec_s=engine->to_stot_pvec(pvec);
+                    pvec_ve=pvec.back().ve;
+
+                    if(pvec_s==s || j==0){
+                        blockvec.at(i).ve=j; //! Set lower ve.
+
+                        if(i<blockvec.size()-1){    //! Set next vo to this ve.
+                            blockvec.at(i+1).vo=j;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return blockvec;
+}
+
+std::vector<sc_block> sc_optimizer::sc_optimize_G123_ve_backward(std::vector<sc_block> blockvec){
+
+    T  vo=0, ve=0, vm=0, acs=0, ace=0, s=0, pvec_s=0, pvec_ve=0;
+
+    for(UI ii=blockvec.size(); ii>0; ii--){ //! Stupid counters when using unsigned int. Maybe use integer for this.
+        UI i=ii-1;
+
+        if(blockvec.at(i).type==sc_G0){
+
+        }
+
+        if(blockvec.at(i).type==sc_G1 || blockvec.at(i).type==sc_G2 || blockvec.at(i).type==sc_G3){ //! End velocity=0 if motion is G0, rapid.
+
+            acs=0, ace=0; //! To keep it simple, can be used later on to improve this library.
+
+            //! Swap vo,ve.
+            ve=blockvec.at(i).vo;
+            vo=blockvec.at(i).ve;
+            vm=blockvec.at(i).velmax;
+            s=blockvec.at(i).blocklenght();
+
+            //! Check if vo to ve fits s.
+            std::vector<sc_engine::sc_period> pvec;
+            engine->process_curve(sc_engine::id_run, vo, ve, acs, ace, s, vm, pvec);
+
+            pvec_s=engine->to_stot_pvec(pvec);
+            pvec_ve=pvec.back().ve;
+
+            if(pvec_s==s){
+                //! Current given ve is ok, do nothing.
+            } else {
+
+                for(T j=ve; j>=0; j-=0.1*ve){ //! Sample down ve until pvec_s=s
+
+                    std::vector<sc_engine::sc_period> pvec;
+                    engine->process_curve(sc_engine::id_run,
+                                          vo,
+                                          j /*sampled ve*/,
+                                          acs,
+                                          ace,
+                                          s,
+                                          vm,
+                                          pvec);
+
+                    pvec_s=engine->to_stot_pvec(pvec);
+                    pvec_ve=pvec.back().ve;
+
+                    if(pvec_s==s || j==0){
+                        blockvec.at(i).vo=j;
+
+                        if(i>1){
+                            blockvec.at(i-1).ve=j;
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -89,16 +179,18 @@ std::vector<sc_block> sc_optimizer::sc_get_velmax_gforce(std::vector<sc_block> b
             sc_arcs().sc_arc_radius(blockvec.at(i).pnt_s,
                                     blockvec.at(i).pnt_w,
                                     blockvec.at(i).pnt_e,radius);
-            std::cout<<"radius:"<<radius<<std::endl;
 
             //! Checks gforce using the program's velmax value.
             T gforce=0;
             sc_get_gforce(velmax,radius,gforce);
-            std::cout<<"velmax:"<<velmax<<" gforce:"<<gforce<<std::endl;
 
             if(gforce>gforcemax){
+                // std::cerr<<"gforce arc reduced from:"<<gforce<<" to:"<<gforcemax<<std::endl;
+
                 T maxvel_arc=0;
                 sc_set_gforce(radius,gforcemax,maxvel_arc);
+                // std::cerr<<"arc vm reduced from:"<<velmax<<" to:"<<maxvel_arc<<std::endl;
+
                 blockvec.at(i).velmax=maxvel_arc;
             } else {
                 blockvec.at(i).velmax=velmax;
@@ -246,6 +338,38 @@ V sc_optimizer::arc_arc_angle(sc_pnt p0,
     line_line_angle(pi0,p2,pi1,angle_deg);
 }
 
+V sc_optimizer::sc_print_blockvec(std::vector<sc_block> blockvec){
+
+    for(UI i=0; i<blockvec.size(); i++){
+        std::cout<<"nr:"<<i<<std::endl;
+
+        if(blockvec.at(i).primitive_id==sc_primitive_id::sc_arc){
+            std::cout<<"id: arc"<<std::endl;
+        }
+        if(blockvec.at(i).primitive_id==sc_primitive_id::sc_line){
+            std::cout<<"id: line"<<std::endl;
+        }
+        if(blockvec.at(i).type==sc_type::sc_G0){
+            std::cout<<"type: G0"<<std::endl;
+        }
+        if(blockvec.at(i).type==sc_type::sc_G1){
+            std::cout<<"type: G1"<<std::endl;
+        }
+        if(blockvec.at(i).type==sc_type::sc_G2){
+            std::cout<<"type: G2"<<std::endl;
+        }
+        if(blockvec.at(i).type==sc_type::sc_G3){
+            std::cout<<"type: G3"<<std::endl;
+        }
+
+        std::cout<<"vo:"<<blockvec.at(i).vo<<std::endl;
+        std::cout<<"ve:"<<blockvec.at(i).ve<<std::endl;
+        std::cout<<"s:"<<blockvec.at(i).blocklenght()<<std::endl;
+        std::cout<<""<<std::endl;
+    }
+    std::cout<<""<<std::endl;
+
+}
 
 
 

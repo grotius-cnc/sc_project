@@ -32,19 +32,38 @@ public:
     //! Constructor.
     sc_optimizer();
 
-    //! Single function to optimize path planning.
-    std::vector<sc_block> sc_optimize_path(
-            std::vector<sc_block> blockvec,
-            T velmax,
-            T gforcemax, T a, T dv);
+    //! Set parameters.
+    V sc_set_a_dv_gforce_velmax(T acceleration, T delta_v, T gforce_max, T velocity_max);
+
+    //! The following functions are path rules. You can use them in sequence, or use a specific one.
+    //! Eventually you could add more path rules to the sequence.
+
+    //! Calculates block angles, then set's a corner ve.
+    std::vector<sc_block> sc_optimize_block_angles_ve(std::vector<sc_block> blockvec);
+
+    //! Calculates arc's vm trough a max defined gforce impact value in [g].
+    std::vector<sc_block> sc_optimize_gforce_arcs(std::vector<sc_block> blockvec);
+
+    //! Sets vo=0, ve=0 when motion is of type: G0
+    std::vector<sc_block> sc_optimize_G0_ve(std::vector<sc_block> blockvec);
+
+    //! Sets vo. ve when motions are of type: G0, G1, G2.
+    std::vector<sc_block> sc_optimize_G123_ve_backward(std::vector<sc_block> blockvec);
+    std::vector<sc_block> sc_optimize_G123_ve_forward(std::vector<sc_block> blockvec);
+
+    //! Print.
+    V sc_print_blockvec(std::vector<sc_block> blockvec);
 
     //! Calculates rotational gforce impact in [g].
     //! We use this to set maxvel for arc's.
     V sc_get_gforce(T vel_mm_sec, T radius, T &gforce);
     V sc_set_gforce(T radius, T gforce, T &vel_mm_sec);
 
-    //! Iterate over the blockvec to get it's follow up angles.
-    //! This results in acceptable corner ve's.
+private:
+    sc_engine *engine=new sc_engine();
+    T a=0, dv=0, gforcemax=0, vm=0;
+
+    //! Iterate over the gcode to get the corners.
     std::vector<sc_block> sc_get_blockangles(
             std::vector<sc_block> blockvec);
 
@@ -57,10 +76,6 @@ public:
     std::vector<sc_block> sc_get_velmax_gforce(std::vector<sc_block> blockvec,
             T velmax,
             T gforcemax);
-
-    //! Calculate ve's iterating over gcode.
-    //! Velmax is already set by the previous gforce arc function.
-    std::vector<sc_block> sc_process_forward_ve(std::vector<sc_block> blockvec);
 
     //! p1 = common point.
     V line_line_angle(sc_pnt p0,
@@ -99,9 +114,6 @@ public:
                     sc_pnt p3,
                     sc_pnt p4,
                     T &angle_deg);
-
-private:
-    sc_engine *engine=new sc_engine();
 };
 
 #endif

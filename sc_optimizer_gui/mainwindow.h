@@ -18,7 +18,12 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_pushButton_optimize_pressed();
+
+    void on_pushButton_optimize_short_lines_pressed();
+
+    void on_pushButton_optimize_arc_gforce_pressed();
+
+    void on_pushButton_calculate_gforce_pressed();
 
 private:
     Ui::MainWindow *ui;
