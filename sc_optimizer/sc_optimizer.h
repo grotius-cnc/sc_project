@@ -51,6 +51,10 @@ public:
     std::vector<sc_block> sc_optimize_G123_ve_backward(std::vector<sc_block> blockvec);
     std::vector<sc_block> sc_optimize_G123_ve_forward(std::vector<sc_block> blockvec);
 
+    //! Function that uses all above path rules.
+    std::vector<sc_block> sc_optimize_all(std::vector<sc_block> blockvec);
+
+
     //! Print.
     V sc_print_blockvec(std::vector<sc_block> blockvec);
 

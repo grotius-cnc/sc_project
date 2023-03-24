@@ -13,6 +13,15 @@ V sc_optimizer::sc_set_a_dv_gforce_velmax(T acceleration, T delta_v, T gforce_ma
     engine->sc_set_a_dv(a,dv);
 }
 
+std::vector<sc_block> sc_optimizer::sc_optimize_all(std::vector<sc_block> blockvec){
+    blockvec=sc_optimize_block_angles_ve(blockvec);
+    blockvec=sc_optimize_gforce_arcs(blockvec);
+    blockvec=sc_optimize_G0_ve(blockvec);
+    blockvec=sc_optimize_G123_ve_backward(blockvec);
+    blockvec=sc_optimize_G123_ve_forward(blockvec);
+    return blockvec;
+}
+
 std::vector<sc_block> sc_optimizer::sc_optimize_block_angles_ve(std::vector<sc_block> blockvec){
 
     //! Calculate motion block corners.

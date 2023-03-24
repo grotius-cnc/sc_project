@@ -6,7 +6,7 @@
 #include <chrono>
 #include <opengl.h>
 #include <../sc_planner/sc_planner.h>
-#include <../sc_pid/sc_pid.h>
+#include <../sc_optimizer/sc_optimizer.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -52,8 +52,6 @@ private:
     sc_dir abc;
     sc_ext uvw;
     T interpolation_progress=0;
-
-    sc_pid *pid_y=new sc_pid();
 
     QString original="background-color: rgb(51, 57, 59);\ncolor: rgb(255, 255, 255);\n";
     QString orange="background-color: rgb(170, 85, 0);\ncolor: rgb(255, 255, 255);\n";

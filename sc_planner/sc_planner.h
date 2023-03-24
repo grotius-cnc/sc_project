@@ -8,7 +8,7 @@
 #include <chrono>
 #include <../sc_engine/sc_engine.h>
 #include <../sc_interpolate/sc_interpolate.h>
-
+#include <../sc_optimizer/sc_optimizer.h>
 //! return 0 = error
 //! return 1 = ok
 class sc_planner
@@ -97,14 +97,17 @@ public:
                          T acs,
                          T ace,
                          sc_pnt start,
-                         sc_pnt end);
+                         sc_pnt end,
+                         sc_type type); //! sc_G0, etc.
+
     V sc_add_arc_motion(T vo,
                         T ve,
                         T acs,
                         T ace,
                         sc_pnt start,
                         sc_pnt way,
-                        sc_pnt end);
+                        sc_pnt end,
+                        sc_type type);
 
     //! Add motion up to 9 axis.
     V sc_add_general_motion(T vo,
@@ -112,6 +115,7 @@ public:
                             T acs,
                             T ace,
                             sc_primitive_id id,
+                            sc_type type,
                             sc_pnt start,
                             sc_pnt way,
                             sc_pnt end,
@@ -172,10 +176,14 @@ public:
 
     T sc_performance();
 
+    //! If you don't know the range, use 0 & INFINITY
+    V sc_optimize(UI range_begin, UI range_end);
+
 private:
 
-    sc_engine *engines = new sc_engine();
-    sc_interpolate *interpolates= new sc_interpolate();
+    sc_engine *engine = new sc_engine();
+    sc_interpolate *interpolate= new sc_interpolate();
+    sc_optimizer *optimizer=new sc_optimizer();
     std::vector<sc_block> blockvec; //! The gcode coordinates.
     std::vector<sc_engine::sc_period> motionvec; //! Derived lenghts from blockvec.
     std::vector<sc_engine::sc_period> pvec;

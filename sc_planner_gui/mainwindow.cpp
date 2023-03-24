@@ -6,6 +6,7 @@ std::vector<double> vvec,svec,avec,pid_vec;
 //! To keep a good gui performance using opengl.
 int gui_delay=0;
 int pid_delay=0;
+UI optimizer_trigger=0;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -29,9 +30,6 @@ MainWindow::MainWindow(QWidget *parent)
     planner->sc_set_a_dv(ui->doubleSpinBox_a->value(),ui->doubleSpinBox_dv->value());
     planner->sc_set_interval(0.001);
     planner->sc_set_maxvel(ui->doubleSpinBox_vm->value());
-
-    // pid_y->sc_set_a_dv_interval(ui->doubleSpinBox_a->value(),ui->doubleSpinBox_dv->value(),0.001);
-    // pid_y->sc_set_maxvel(ui->doubleSpinBox_vm->value());
 }
 
 MainWindow::~MainWindow()
@@ -74,20 +72,16 @@ void MainWindow::thread(){
                                     traject_progress,
                                     finished);
 
+    if(line_progress>0 && line_progress<0.5 && !optimizer_trigger){
+        planner->sc_optimize(line_nr,line_nr+20);
+        // std::cout<<"optimizing ahead, from line:"<<line_nr<<" to line nr:"<<line_nr+20<<std::endl;
+        optimizer_trigger=1;
+    }
+    if(line_progress>0.5){
+        optimizer_trigger=0;
+    }
+
     planner->sc_get_interpolation_results(xyz,abc,uvw,interpolation_progress);
-
-    // pid_y->sc_update();
-
-    // T pid_pos_y=0, pid_vel_y=0, pid_acc_y=0;
-    // pid_y->sc_result(pid_pos_y, pid_vel_y, pid_acc_y);
-    // std::cout<<std::fixed<<"pid pos:"<<pid_pos_y<<" vel:"<<pid_vel_y<<" acc:"<<pid_acc_y<<std::endl;
-    // std::cout<<std::fixed<<"following error:"<<xyz.y-pid_pos_y<<std::endl;
-
-    // pid_y->sc_set_tarpos(xyz.y);
-    // pid_y->sc_set_tarpos(100);
-
-    // pid_vec.push_back(pid_vel_y);
-    // myOpenGl->setj3Vec(pid_vec);
 
     set_opengl(velocity,position,acceleration);
 
@@ -166,8 +160,6 @@ void MainWindow::thread(){
     }
 }
 
-#include <../sc_optimizer/sc_optimizer.h>
-
 void MainWindow::on_pushButton_run_pressed()
 {
     if(planner->sc_get_stop_cycle_state()){
@@ -179,38 +171,29 @@ void MainWindow::on_pushButton_run_pressed()
 
         planner->sc_clear();
         vo=0, ve=0;
-        planner->sc_add_line_motion(vo,ve,acs,ace,{0,0,0},{0,100,0});
+        planner->sc_add_line_motion(vo,ve,acs,ace,{0,0,0},{10,0,0},sc_type::sc_G1);
 
-        vo=0; ve=0;
-        planner->sc_add_line_motion(vo,ve,acs,ace,{0,100,0},{100,100,0});
+        vo=0, ve=0;
+        planner->sc_add_line_motion(vo,ve,acs,ace,{10,0,0},{20,0,0},sc_type::sc_G1);
 
-        vo=0; ve=0;
-        planner->sc_add_line_motion(vo,ve,acs,ace,{100,100,0},{100,0,0});
+        vo=0, ve=0;
+        planner->sc_add_line_motion(vo,ve,acs,ace,{20,0,0},{100,0,0},sc_type::sc_G1);
 
-        vo=0; ve=0;
-        planner->sc_add_line_motion(vo,ve,acs,ace,{100,0,0},{0,0,0});
+        vo=0, ve=0;
+        planner->sc_add_line_motion(vo,ve,acs,ace,{100,0,0},{110,0,0},sc_type::sc_G1);
+
+        vo=0, ve=0;
+        planner->sc_add_line_motion(vo,ve,acs,ace,{110,0,0},{200,50,0},sc_type::sc_G1);
+
+        //! Optimize gcode's first 20 lines at program start.
+        planner->sc_optimize(0,20);
+        //! Or optimize full gcode.
+        // planner->sc_optimize(0,Infinity);
 
         planner->sc_set_startline(ui->spinBox_start_line->value());
+
         planner->sc_set_state(sc_planner::sc_enum_program_status::program_run);
     }
-
-    // T angle_deg=0;
-    // sc_look_ahead().line_line_angle({0,0,0},{50,0,0},{0,1,0},angle_deg);
-    // std::cout<<"angle deg:"<<angle_deg<<std::endl;
-
-    //    T gforce=0;
-
-    //    sc_look_ahead().sc_get_gforce(0,5,gforce);
-    //    std::cout<<"gforce 0mm/min r5:"<<gforce<<std::endl;
-
-    //    sc_look_ahead().sc_get_gforce(1400,5,gforce);
-    //    std::cout<<"gforce 1400mm/min r5:"<<gforce<<std::endl;
-
-    //    sc_look_ahead().sc_get_gforce(3000,5,gforce);
-    //    std::cout<<"gforce 3000mm/min r5:"<<gforce<<std::endl;
-
-    //    sc_look_ahead().sc_get_gforce(9000,5,gforce);
-    //    std::cout<<"gforce 9000mm/min r5:"<<gforce<<std::endl;
 }
 
 void MainWindow::on_pushButton_pause_pressed()

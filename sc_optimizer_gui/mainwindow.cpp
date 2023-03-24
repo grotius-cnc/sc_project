@@ -73,12 +73,8 @@ void MainWindow::on_pushButton_optimize_arc_gforce_pressed()
 
     optimizer->sc_set_a_dv_gforce_velmax(a,dv,gforcemax,velmax);
 
-    //! The following function call's are path rules:
-    blockvec=optimizer->sc_optimize_block_angles_ve(blockvec);
-    blockvec=optimizer->sc_optimize_gforce_arcs(blockvec);
-    blockvec=optimizer->sc_optimize_G0_ve(blockvec);
-    blockvec=optimizer->sc_optimize_G123_ve_backward(blockvec);
-    blockvec=optimizer->sc_optimize_G123_ve_forward(blockvec);
+    //! Process path rules over the blockvec.
+    blockvec=optimizer->sc_optimize_all(blockvec);
 
     optimizer->sc_print_blockvec(blockvec);
 }
@@ -126,18 +122,13 @@ void MainWindow::on_pushButton_optimize_short_lines_pressed()
 
     optimizer->sc_set_a_dv_gforce_velmax(a,dv,gforcemax,velmax);
 
-    //! The following function call's are path rules:
-
-    blockvec=optimizer->sc_optimize_block_angles_ve(blockvec);
-    blockvec=optimizer->sc_optimize_gforce_arcs(blockvec);
-    blockvec=optimizer->sc_optimize_G0_ve(blockvec);
-    blockvec=optimizer->sc_optimize_G123_ve_backward(blockvec);
-    blockvec=optimizer->sc_optimize_G123_ve_forward(blockvec);
+    //! Process path rules over the blockvec.
+    blockvec=optimizer->sc_optimize_all(blockvec);
 
     optimizer->sc_print_blockvec(blockvec);
-
 }
 
+//! Gives the user an impression what's going on.
 void MainWindow::on_pushButton_calculate_gforce_pressed()
 {
     T gforce=0;

@@ -6,7 +6,7 @@ sc_planner::sc_planner()
 }
 
 V sc_planner::sc_set_a_dv(T acceleration, T delta_velocity){
-    engines->sc_set_a_dv(acceleration,delta_velocity);
+    engine->sc_set_a_dv(acceleration,delta_velocity);
 }
 
 V sc_planner::sc_set_maxvel(T velocity_max){
@@ -49,12 +49,13 @@ V sc_planner::sc_reset(){
     sc_timer=0;
 }
 
-V sc_planner::sc_add_line_motion(T vo, T ve, T acs, T ace, sc_pnt start, sc_pnt end){
+V sc_planner::sc_add_line_motion(T vo, T ve, T acs, T ace, sc_pnt start, sc_pnt end, sc_type type){
 
     T ncs=0, nct=0;
 
     sc_block b;
     b.primitive_id=sc_primitive_id::sc_line;
+    b.type=type;
     b.set_pnt(start,end);
     ncs=b.blocklenght();
     blockvec.push_back(b);
@@ -62,12 +63,13 @@ V sc_planner::sc_add_line_motion(T vo, T ve, T acs, T ace, sc_pnt start, sc_pnt 
     motionvec.push_back({sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct});
 }
 
-V sc_planner::sc_add_arc_motion(T vo, T ve, T acs, T ace, sc_pnt start, sc_pnt way, sc_pnt end){
+V sc_planner::sc_add_arc_motion(T vo, T ve, T acs, T ace, sc_pnt start, sc_pnt way, sc_pnt end, sc_type type){
 
     T ncs=0, nct=0;
 
     sc_block b;
     b.primitive_id=sc_primitive_id::sc_arc;
+    b.type=type;
     b.set_pnt(start,way,end);
     ncs=b.blocklenght();
     blockvec.push_back(b);
@@ -80,6 +82,7 @@ V sc_planner::sc_add_general_motion(T vo,
                                     T acs,
                                     T ace,
                                     sc_primitive_id id,
+                                    sc_type type,
                                     sc_pnt start,
                                     sc_pnt way,
                                     sc_pnt end,
@@ -92,6 +95,7 @@ V sc_planner::sc_add_general_motion(T vo,
 
     sc_block b;
     b.primitive_id=id;
+    b.type=type;
     b.set_pnt(start,way,end);
     b.set_dir(dir_start,dir_end);
     b.set_ext(ext_start,ext_end);
@@ -107,8 +111,8 @@ B sc_planner::sc_set_traject_stot(){
     sc_stot=0;
     for(UI i=0; i<motionvec.size(); i++){
         std::vector<sc_engine::sc_period> tempvec;
-        engines->process_curve(motionvec.at(i),sc_vm,tempvec);
-        sc_stot+=engines->to_stot_pvec(tempvec);
+        engine->process_curve(motionvec.at(i),sc_vm,tempvec);
+        sc_stot+=engine->to_stot_pvec(tempvec);
     }
     if(sc_stot==0){
         std::cerr<<"traject stot error"<<std::endl;
@@ -127,8 +131,8 @@ V sc_planner::sc_get_motionvec_nr_from_position(T &motionvec_nr, T &motionvec_nr
 
     for(UI i=0; i<motionvec.size(); i++){
         std::vector<sc_engine::sc_period> tempvec;
-        engines->process_curve(motionvec.at(i),sc_vm,tempvec);
-        l=engines->to_stot_pvec(tempvec);
+        engine->process_curve(motionvec.at(i),sc_vm,tempvec);
+        l=engine->to_stot_pvec(tempvec);
 
         if(sc_pos>=s && sc_pos <=s+l){
             motionvec_nr=i;
@@ -220,7 +224,7 @@ V sc_planner::sc_run_check(){
 V sc_planner::sc_run_init(){
 
     pvec.clear();
-    engines->process_curve(motionvec.at(sc_motionvec_nr),sc_vm,pvec);
+    engine->process_curve(motionvec.at(sc_motionvec_nr),sc_vm,pvec);
     sc_timer=0;
     sc_oldpos=0;
     sc_newpos=0;
@@ -233,7 +237,7 @@ V sc_planner::sc_run_cycle(){
 
     sc_oldpos=sc_newpos;
     //! Process current motionvec_nr.
-    engines->interpolate_periods(sc_timer,pvec,sc_newpos,sc_vel,sc_acc,finished);
+    engine->interpolate_periods(sc_timer,pvec,sc_newpos,sc_vel,sc_acc,finished);
 
     sc_pos+=sc_newpos-sc_oldpos;
 
@@ -280,7 +284,7 @@ V sc_planner::sc_pause_init(){
     T ve=0, ace=0, ncs=0;
 
     pvec.clear();
-    engines->process_curve(sc_engine::sc_period_id::id_pause,
+    engine->process_curve(sc_engine::sc_period_id::id_pause,
                           sc_vel, ve, sc_acc, ace, ncs, sc_vm, pvec);
     sc_timer=0;
     sc_oldpos=0;
@@ -295,7 +299,7 @@ V sc_planner::sc_pause_cycle(){
 
     sc_oldpos=sc_newpos;
 
-    engines->interpolate_periods(sc_timer,pvec,sc_newpos,sc_vel,sc_acc,finished);
+    engine->interpolate_periods(sc_timer,pvec,sc_newpos,sc_vel,sc_acc,finished);
 
     sc_pos+=sc_newpos-sc_oldpos;
 
@@ -343,7 +347,7 @@ V sc_planner::sc_pause_resume_init(){
     T ncs=sc_motionvec_nr_dtg;
 
     pvec.clear();
-    engines->process_curve(sc_engine::sc_period_id::id_run,
+    engine->process_curve(sc_engine::sc_period_id::id_run,
                           sc_vel, motionvec.at(sc_motionvec_nr).ve, sc_acc,
                           motionvec.at(sc_motionvec_nr).ace, ncs, sc_vm, pvec);
     sc_timer=0;
@@ -384,7 +388,7 @@ V sc_planner::sc_stop_init(){
     T ve=0, ace=0, ncs=0;
 
     pvec.clear();
-    engines->process_curve(sc_engine::sc_period_id::id_pause,
+    engine->process_curve(sc_engine::sc_period_id::id_pause,
                           sc_vel, ve, sc_acc, ace, ncs, sc_vm, pvec);
     sc_timer=0;
     sc_oldpos=0;
@@ -399,7 +403,7 @@ V sc_planner::sc_stop_cycle(){
 
     sc_oldpos=sc_newpos;
 
-    engines->interpolate_periods(sc_timer,pvec,sc_newpos,sc_vel,sc_acc,finished);
+    engine->interpolate_periods(sc_timer,pvec,sc_newpos,sc_vel,sc_acc,finished);
 
     sc_pos+=sc_newpos-sc_oldpos;
 
@@ -449,11 +453,11 @@ V sc_planner::sc_vm_interupt_init(){
         T ncs=sc_motionvec_nr_dtg;
 
         std::vector<sc_engine::sc_period> tempvec;
-        engines->process_curve(sc_engine::sc_period_id::id_run,
+        engine->process_curve(sc_engine::sc_period_id::id_run,
                               sc_vel, motionvec.at(sc_motionvec_nr).ve, sc_acc,
                               motionvec.at(sc_motionvec_nr).ace, ncs, sc_vm, tempvec);
 
-        if(engines->to_stot_pvec(tempvec)<=ncs+0.00001){ //! Allow a vm interupt if interupt curve fits dtg.
+        if(engine->to_stot_pvec(tempvec)<=ncs+0.00001){ //! Allow a vm interupt if interupt curve fits dtg.
 
             pvec.clear();
             pvec=tempvec;
@@ -506,7 +510,7 @@ V sc_planner::sc_get_planner_results(T &position,
 
 V sc_planner::sc_get_interpolation_results(sc_pnt &xyz, sc_dir &abc, sc_ext &uvw, T &curve_progress){
     T traject_progress=sc_pos/sc_stot;
-    interpolates->interpolate_blockvec(blockvec,
+    interpolate->interpolate_blockvec(blockvec,
                                       traject_progress,
                                       xyz,abc,uvw,curve_progress);
 }
@@ -587,8 +591,8 @@ B sc_planner::sc_check_motionvec_startline(){
 
     for(UI i=0; i<motionvec.size(); i++){
         std::vector<sc_engine::sc_period> tempvec;
-        engines->process_curve(motionvec.at(i),sc_vm,tempvec);
-        l=engines->to_stot_pvec(tempvec);
+        engine->process_curve(motionvec.at(i),sc_vm,tempvec);
+        l=engine->to_stot_pvec(tempvec);
 
         if(sc_motionvec_nr==i){
             sc_set_position(s);
@@ -614,6 +618,54 @@ B sc_planner::sc_check_vm(){
     }
     return 1;
 }
+
+V sc_planner::sc_optimize(UI range_begin, UI range_end){
+
+    //! Use the sc_optimizer to optimize the given gcode input.
+    T gforcemax=0.022; //! Gforce for : circle 6mm diameter, 1400mm/min.
+
+    optimizer->sc_set_a_dv_gforce_velmax(engine->a,engine->dv,gforcemax,sc_vm);
+
+    blockvec=optimizer->sc_optimize_all(blockvec);
+
+    //! Update the motionvec.
+    for(UI i=std::max(0.0,T(range_begin)); i<std::min(T(range_end),T(blockvec.size())); i++){
+
+        T vo=blockvec.at(i).vo;
+        T ve=blockvec.at(i).ve;
+        T velmax=blockvec.at(i).velmax;
+        T acs=0, ace=0;
+        T ncs=blockvec.at(i).blocklenght();
+        T nct=0;
+
+        motionvec.at(i)={sc_engine::sc_period_id::id_run,vo,ve,acs,ace,ncs,nct};
+    }
+
+    //! optimizer->sc_print_blockvec(blockvec);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

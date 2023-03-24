@@ -14,6 +14,7 @@ add_library(sc_optimizer SHARED
     ${SRC_DIR}/../sc_engine/sc_engine.h
     ${SRC_DIR}/../sc_engine/sc_engine.cpp
     ${SRC_DIR}/../sc_common/sc_struct.h
+    ${SRC_DIR}/../sc_common/sc_block.h
     ${SRC_DIR}/../sc_common/sc_arcs.h
     ${SRC_DIR}/../sc_common/sc_arcs.cpp
     ${SRC_DIR}/../sc_common/sc_lines.h

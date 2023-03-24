@@ -24,6 +24,6 @@ add_subdirectory(${SRC_DIR}/sc_optimizer)
 # Graphical interfaces:
 # add_subdirectory(${SRC_DIR}/sc_primitives_gui)
 # add_subdirectory(${SRC_DIR}/sc_curves_gui)
-# add_subdirectory(${SRC_DIR}/sc_planner_gui)
+add_subdirectory(${SRC_DIR}/sc_planner_gui)
 # add_subdirectory(${SRC_DIR}/sc_pid_gui)
 add_subdirectory(${SRC_DIR}/sc_optimizer_gui)
