@@ -2,6 +2,7 @@
 	This is already fixed for pvec.back().ve
 
 2. 	The sc_planner has to react to the lowered velmax for arc's.
+	How to implement this? Maybe modify the live-velmax if motion is of type arc.
 	
 
 

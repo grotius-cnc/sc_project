@@ -1,4 +1,4 @@
-﻿#include "sc_engine.h"
+#include "sc_engine.h"
 
 inline I sc_engine::t1(T vo, T acs, T ace, sc_period &p){
 
@@ -331,7 +331,7 @@ I sc_engine::t6_pid(T vo, T a, T interval, sc_period &p){
     T t=interval;
     a=std::abs(a);
     T ve=vo - a*t;
-    T s=p.vo*t - 0.5*a*(t*t);
+    T s=vo*t - 0.5*a*(t*t);
 
     T ncs=s;
     T nct=interval;
